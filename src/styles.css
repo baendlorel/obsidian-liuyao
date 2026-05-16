@@ -113,7 +113,7 @@
 
 .liuyao-line__segment {
   width: calc((var(--liuyao-line-width) - var(--liuyao-line-gap)) / 2);
-  height: 0.52rem;
+  height: 0.58rem;
   border-radius: 1px;
   background: currentColor;
 }

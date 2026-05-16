@@ -219,14 +219,11 @@ export default class LiuyaoRendererPlugin extends Plugin {
   private createSolarLunarCard(rawInput: string, parsedDate: Date, lunarInfo: SolarLunarResult): HTMLElement {
     const wrapper = h('section', 'solarlunar-card');
 
-    const title = h('div', 'solarlunar-card__title', '起卦时辰');
-    wrapper.append(title);
-
     const rows: Array<[string, string]> = [
       ['原始输入', rawInput],
       ['公历', `${formatGregorianDate(parsedDate)} ${lunarInfo.ncWeek}`],
       ['农历', `${lunarInfo.yearCn}年 ${lunarInfo.monthCn}${lunarInfo.dayCn}${lunarInfo.isLeap ? '（闰月）' : ''}`],
-      ['干支', `${lunarInfo.gzYear}年 ${lunarInfo.gzMonth}月 ${lunarInfo.gzDay}日`],
+      ['干支', `${lunarInfo.gzYear}年 ${lunarInfo.gzMonth}月 ${lunarInfo.gzDay}日 ${getShichen(parsedDate)}时`],
       ['生肖', lunarInfo.animal],
       ['节气', lunarInfo.isTerm ? lunarInfo.term : '无'],
     ];
@@ -418,4 +415,8 @@ function formatGregorianDate(date: Date): string {
   const second = String(date.getSeconds()).padStart(2, '0');
 
   return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+}
+
+function getShichen(date: Date): string {
+  return '子丑丑寅寅卯卯辰辰巳巳午午未未申申酉酉戌戌亥亥子'[date.getHours()] ?? '未知';
 }
