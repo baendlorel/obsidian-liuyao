@@ -174,7 +174,7 @@ export default class LiuyaoRendererPlugin extends Plugin {
     const rows: Array<[string, string]> = [
       ['原始输入', rawInput],
       ['公历', `${formatGregorianDate(parsedDate)} ${lunarInfo.ncWeek}`],
-      ['农历', `${lunarInfo.yearCn}年 ${lunarInfo.monthCn}${lunarInfo.dayCn}${lunarInfo.isLeap ? '（闰月）' : ''}`],
+      ['农历', `${lunarInfo.yearCn} ${lunarInfo.monthCn}${lunarInfo.dayCn}${lunarInfo.isLeap ? '（闰月）' : ''}`],
       ['干支', `${lunarInfo.gzYear}年 ${lunarInfo.gzMonth}月 ${lunarInfo.gzDay}日 ${getShichen(parsedDate)}时`],
       ['生肖', lunarInfo.animal],
       ['节气', lunarInfo.isTerm ? lunarInfo.term : '无'],
