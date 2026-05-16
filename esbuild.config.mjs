@@ -4,7 +4,7 @@ import esbuild from 'esbuild';
 
 const watch = process.argv.includes('--watch');
 const outdir = 'dist';
-const staticFiles = ['manifest.json', 'styles.css'];
+const staticFiles = ['manifest.json', 'src/styles.css'];
 
 async function prepareDist() {
   if (!watch) {

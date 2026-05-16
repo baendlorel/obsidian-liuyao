@@ -5,6 +5,9 @@
 }
 
 .liuyao-card {
+  --liuyao-side-width: 7.5rem;
+  --liuyao-line-width: 8.5rem;
+  --liuyao-line-gap: 1rem;
   display: grid;
   gap: 0.5rem;
   width: min(100%, 34rem);
@@ -22,7 +25,8 @@
 
 .liuyao-card__row {
   display: grid;
-  grid-template-columns: minmax(5.5rem, 1fr) auto minmax(1.8rem, 2.5rem);
+  grid-template-columns: var(--liuyao-side-width) var(--liuyao-line-width) var(--liuyao-side-width);
+  justify-content: center;
   align-items: center;
   gap: 0.75rem;
 }
@@ -45,7 +49,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 8.5rem;
+  width: var(--liuyao-line-width);
   color: #111111;
 }
 
@@ -54,18 +58,18 @@
 }
 
 .liuyao-line__segment {
-  width: 3.8rem;
+  width: calc((var(--liuyao-line-width) - var(--liuyao-line-gap)) / 2);
   height: 0.6rem;
-  border-radius: 999px;
+  border-radius: 1px;
   background: currentColor;
 }
 
 .liuyao-line[data-kind='yang'] .liuyao-line__segment {
-  width: 8.5rem;
+  width: var(--liuyao-line-width);
 }
 
 .liuyao-line__gap {
-  width: 1rem;
+  width: var(--liuyao-line-gap);
 }
 
 .liuyao-error {
