@@ -420,3 +420,5 @@ function formatGregorianDate(date: Date): string {
 function getShichen(date: Date): string {
   return '子丑丑寅寅卯卯辰辰巳巳午午未未申申酉酉戌戌亥亥子'[date.getHours()] ?? '未知';
 }
+
+// TODO 发布到obsidian

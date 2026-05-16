@@ -2,7 +2,7 @@
   "name": "obsidian-liuyao",
   "version": "0.1.0",
   "private": true,
-  "description": "Obsidian plugin that renders \\liuyao{012321} syntax.",
+  "description": "Obsidian plugin that renders liuyao gram graphs by ```liuyao datetime 012321``` syntax.",
   "scripts": {
     "build": "node esbuild.config.mjs",
     "dev": "node esbuild.config.mjs --watch"
