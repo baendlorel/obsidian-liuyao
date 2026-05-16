@@ -1,26 +1,16 @@
 import { Plugin } from 'obsidian';
+import { Hexagrams, type HexagramInfo } from './core/common.js';
 
-const LIUYAO_INLINE_PATTERN = /\\liuyao\{([0-3]{6})\}/g;
-const LIUYAO_INLINE_DETECT_PATTERN = /\\liuyao\{([0-3]{6})\}/;
 const LIUYAO_DIGITS_PATTERN = /^[0-3]{6}$/;
 
 type YaoValue = '0' | '1' | '2' | '3';
 
-const YAO_LABELS: Record<YaoValue, string> = {
-  '0': '老阴',
-  '1': '少阳',
-  '2': '少阴',
-  '3': '老阳',
-};
+const HEXAGRAM_BY_BINARY = new Map(Hexagrams.list.map((hexagram) => [hexagram.binary, hexagram]));
 
 export default class LiuyaoRendererPlugin extends Plugin {
   onload(): void {
     this.registerMarkdownCodeBlockProcessor('liuyao', (source, element) => {
       this.renderLiuyaoBlock(source, element);
-    });
-
-    this.registerMarkdownPostProcessor((element) => {
-      this.renderLiuyaoSyntax(element);
     });
   }
 
@@ -37,141 +27,76 @@ export default class LiuyaoRendererPlugin extends Plugin {
       return;
     }
 
-    const wrapper = document.createElement('div');
-    wrapper.className = 'liuyao-block';
-    wrapper.append(this.createDiagram(rawDigits));
-    element.append(wrapper);
-  }
+    const hexagram = getHexagram(rawDigits);
 
-  private renderLiuyaoSyntax(root: HTMLElement): void {
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-      acceptNode: (node) => {
-        if (!(node instanceof Text)) {
-          return NodeFilter.FILTER_REJECT;
-        }
-
-        const parentElement = node.parentElement;
-
-        if (!parentElement) {
-          return NodeFilter.FILTER_REJECT;
-        }
-
-        if (parentElement.closest('code, pre, .liuyao-inline')) {
-          return NodeFilter.FILTER_REJECT;
-        }
-
-        return LIUYAO_INLINE_DETECT_PATTERN.test(node.textContent ?? '')
-          ? NodeFilter.FILTER_ACCEPT
-          : NodeFilter.FILTER_REJECT;
-      },
-    });
-
-    const textNodes: Text[] = [];
-
-    while (walker.nextNode()) {
-      const currentNode = walker.currentNode;
-      if (currentNode instanceof Text) {
-        textNodes.push(currentNode);
-      }
-    }
-
-    for (const textNode of textNodes) {
-      this.replaceTextNode(textNode);
-    }
-  }
-
-  private replaceTextNode(textNode: Text): void {
-    const content = textNode.textContent ?? '';
-    const matches = Array.from(content.matchAll(LIUYAO_INLINE_PATTERN));
-
-    if (matches.length === 0) {
+    if (!hexagram) {
+      const error = document.createElement('div');
+      error.className = 'liuyao-error';
+      error.textContent = `Unable to find hexagram data for ${rawDigits}`;
+      element.append(error);
       return;
     }
 
-    const fragment = document.createDocumentFragment();
-    let cursor = 0;
-
-    for (const match of matches) {
-      const matchIndex = match.index ?? 0;
-      const [fullMatch, rawDigits] = match;
-
-      if (matchIndex > cursor) {
-        fragment.append(content.slice(cursor, matchIndex));
-      }
-
-      if (isLiuyaoDigits(rawDigits)) {
-        fragment.append(this.createDiagram(rawDigits));
-      } else {
-        fragment.append(fullMatch);
-      }
-
-      cursor = matchIndex + fullMatch.length;
-    }
-
-    if (cursor < content.length) {
-      fragment.append(content.slice(cursor));
-    }
-
-    textNode.replaceWith(fragment);
+    const wrapper = document.createElement('div');
+    wrapper.className = 'liuyao-block';
+    wrapper.append(this.createDiagram(rawDigits, hexagram));
+    element.append(wrapper);
   }
 
-  private createDiagram(rawDigits: string): HTMLElement {
-    const wrapper = document.createElement('span');
-    wrapper.className = 'liuyao-inline';
-    wrapper.setAttribute('aria-label', this.describeDiagram(rawDigits));
-    wrapper.setAttribute('title', `六爻卦象 ${rawDigits}`);
+  private createDiagram(rawDigits: string, hexagram: HexagramInfo): HTMLElement {
+    const wrapper = document.createElement('section');
+    wrapper.className = 'liuyao-card';
+    wrapper.setAttribute('aria-label', `${hexagram.family}宫 ${hexagram.id}`);
+    wrapper.setAttribute('title', `${hexagram.family}宫 ${hexagram.id} ${rawDigits}`);
 
-    const svgNamespace = 'http://www.w3.org/2000/svg';
-    const svg = document.createElementNS(svgNamespace, 'svg');
-    svg.setAttribute('class', 'liuyao-diagram');
-    svg.setAttribute('viewBox', '0 0 132 172');
-    svg.setAttribute('role', 'img');
-    svg.setAttribute('aria-hidden', 'true');
+    const header = document.createElement('div');
+    header.className = 'liuyao-card__title';
+    header.textContent = `${hexagram.family}宫 ${hexagram.id}`;
+    wrapper.append(header);
 
-    const topDownDigits = rawDigits.split('').reverse() as YaoValue[];
+    const lines = buildDisplayLines(rawDigits, hexagram);
 
-    topDownDigits.forEach((digit, index) => {
-      const y = 16 + index * 28;
-      const color = digit === '0' || digit === '3' ? '#c62828' : '#111111';
+    for (const lineInfo of lines) {
+      const row = document.createElement('div');
+      row.className = 'liuyao-card__row';
 
-      if (digit === '1' || digit === '3') {
-        svg.append(this.createLine(svgNamespace, 12, y, 120, y, color));
-        return;
+      const left = document.createElement('span');
+      left.className = 'liuyao-card__text liuyao-card__text--left';
+      left.textContent = lineInfo.description;
+
+      const middle = document.createElement('div');
+      middle.className = 'liuyao-line';
+      middle.dataset.kind = lineInfo.isYang ? 'yang' : 'yin';
+      middle.dataset.changing = String(lineInfo.isChanging);
+      middle.setAttribute('aria-hidden', 'true');
+
+      middle.append(this.createLineSegment());
+      if (!lineInfo.isYang) {
+        middle.append(this.createLineGap());
+        middle.append(this.createLineSegment());
       }
 
-      svg.append(this.createLine(svgNamespace, 12, y, 52, y, color));
-      svg.append(this.createLine(svgNamespace, 80, y, 120, y, color));
-    });
+      const right = document.createElement('span');
+      right.className = 'liuyao-card__text liuyao-card__text--right';
+      right.textContent = lineInfo.relation ?? '';
 
-    wrapper.append(svg);
+      row.append(left, middle, right);
+      wrapper.append(row);
+    }
+
     return wrapper;
   }
 
-  private createLine(
-    svgNamespace: string,
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number,
-    color: string,
-  ): SVGLineElement {
-    const line = document.createElementNS(svgNamespace, 'line') as SVGLineElement;
-    line.setAttribute('class', 'liuyao-diagram__line');
-    line.setAttribute('x1', String(x1));
-    line.setAttribute('y1', String(y1));
-    line.setAttribute('x2', String(x2));
-    line.setAttribute('y2', String(y2));
-    line.setAttribute('stroke', color);
-    return line;
+  private createLineSegment(): HTMLElement {
+    const segment = document.createElement('span');
+    segment.className = 'liuyao-line__segment';
+    return segment;
   }
 
-  private describeDiagram(rawDigits: string): string {
-    const lines = rawDigits
-      .split('')
-      .reverse()
-      .map((digit) => YAO_LABELS[digit as YaoValue]);
-
-    return `六爻卦象：${lines.join('、')}`;
+  private createLineGap(): HTMLElement {
+    const gap = document.createElement('span');
+    gap.className = 'liuyao-line__gap';
+    return gap;
   }
 }
 
@@ -182,10 +107,35 @@ function isLiuyaoDigits(value: string | undefined): value is string {
 function parseLiuyaoSource(source: string): string | null {
   const normalized = source.trim();
 
-  if (LIUYAO_DIGITS_PATTERN.test(normalized)) {
+  if (isLiuyaoDigits(normalized)) {
     return normalized;
   }
 
-  const inlineMatch = normalized.match(/^\\liuyao\{([0-3]{6})\}$/);
-  return inlineMatch?.[1] ?? null;
+  return null;
+}
+
+function getHexagram(rawDigits: string): HexagramInfo | undefined {
+  const binary = rawDigits
+    .split('')
+    .map((digit) => (digit === '1' || digit === '3' ? '1' : '0'))
+    .join('');
+
+  return HEXAGRAM_BY_BINARY.get(binary);
+}
+
+function buildDisplayLines(rawDigits: string, hexagram: HexagramInfo) {
+  const digits = rawDigits.split('') as YaoValue[];
+
+  return digits
+    .map((digit, index) => {
+      const setup = hexagram.setupInfo[index];
+      return {
+        digit,
+        description: setup?.description || '',
+        relation: setup?.type || '',
+        isYang: digit === '1' || digit === '3',
+        isChanging: digit === '0' || digit === '3',
+      };
+    })
+    .reverse();
 }
