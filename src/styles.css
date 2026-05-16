@@ -1,20 +1,35 @@
 .liuyao-block {
   display: flex;
+  align-items: flex-start;
   justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
   margin: 1em 0;
 }
 
 .liuyao-card {
   --liuyao-side-width: 7.5rem;
-  --liuyao-line-width: 8.5rem;
+  --liuyao-line-width: 7.65rem;
   --liuyao-line-gap: 2rem;
   display: grid;
   gap: 0.5rem;
-  width: min(100%, 34rem);
+  width: max-content;
+  max-width: 100%;
   padding: 1rem 1.25rem;
   border: 1px solid var(--background-modifier-border);
   border-radius: 12px;
   background: var(--background-secondary);
+}
+
+.liuyao-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding-top: 3.2rem;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  line-height: 1;
 }
 
 .liuyao-card__title {
@@ -53,8 +68,12 @@
   color: #111111;
 }
 
-.liuyao-line[data-changing='true'] {
+.liuyao-line[data-tone='changing'] {
   color: #c62828;
+}
+
+.liuyao-line[data-tone='muted'] {
+  color: var(--text-faint);
 }
 
 .liuyao-line__segment {
@@ -75,4 +94,13 @@
 .liuyao-error {
   color: var(--text-error);
   font-size: 0.9em;
+}
+
+@media (max-width: 860px) {
+  .liuyao-arrow {
+    width: 100%;
+    min-height: auto;
+    padding-top: 0;
+    transform: rotate(90deg);
+  }
 }

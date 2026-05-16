@@ -4,6 +4,14 @@ import { Hexagrams, type HexagramInfo } from './core/common.js';
 const LIUYAO_DIGITS_PATTERN = /^[0-3]{6}$/;
 
 type YaoValue = '0' | '1' | '2' | '3';
+type LineTone = 'default' | 'changing' | 'muted';
+
+type DisplayLine = {
+  description: string;
+  relation: string;
+  isYang: boolean;
+  tone: LineTone;
+};
 
 const HEXAGRAM_BY_BINARY = new Map(Hexagrams.list.map((hexagram) => [hexagram.binary, hexagram]));
 
@@ -39,11 +47,36 @@ export default class LiuyaoRendererPlugin extends Plugin {
 
     const wrapper = document.createElement('div');
     wrapper.className = 'liuyao-block';
-    wrapper.append(this.createDiagram(rawDigits, hexagram));
+
+    const primaryLines = buildPrimaryDisplayLines(rawDigits, hexagram);
+    wrapper.append(this.createCard(rawDigits, hexagram, primaryLines));
+
+    const changedDigits = getChangedDigits(rawDigits);
+    if (changedDigits !== rawDigits) {
+      const changedHexagram = getHexagram(changedDigits);
+
+      if (!changedHexagram) {
+        const error = document.createElement('div');
+        error.className = 'liuyao-error';
+        error.textContent = `Unable to find changed hexagram data for ${changedDigits}`;
+        element.append(error);
+        return;
+      }
+
+      wrapper.append(this.createArrow());
+      wrapper.append(
+        this.createCard(
+          changedDigits,
+          changedHexagram,
+          buildChangedDisplayLines(rawDigits, changedDigits, changedHexagram),
+        ),
+      );
+    }
+
     element.append(wrapper);
   }
 
-  private createDiagram(rawDigits: string, hexagram: HexagramInfo): HTMLElement {
+  private createCard(rawDigits: string, hexagram: HexagramInfo, lines: DisplayLine[]): HTMLElement {
     const wrapper = document.createElement('section');
     wrapper.className = 'liuyao-card';
     wrapper.setAttribute('aria-label', `${hexagram.family}宫 ${hexagram.id}`);
@@ -53,8 +86,6 @@ export default class LiuyaoRendererPlugin extends Plugin {
     header.className = 'liuyao-card__title';
     header.textContent = `${hexagram.family}宫 ${hexagram.id}`;
     wrapper.append(header);
-
-    const lines = buildDisplayLines(rawDigits, hexagram);
 
     for (const lineInfo of lines) {
       const row = document.createElement('div');
@@ -67,7 +98,7 @@ export default class LiuyaoRendererPlugin extends Plugin {
       const middle = document.createElement('div');
       middle.className = 'liuyao-line';
       middle.dataset.kind = lineInfo.isYang ? 'yang' : 'yin';
-      middle.dataset.changing = String(lineInfo.isChanging);
+      middle.dataset.tone = lineInfo.tone;
       middle.setAttribute('aria-hidden', 'true');
 
       middle.append(this.createLineSegment());
@@ -85,6 +116,14 @@ export default class LiuyaoRendererPlugin extends Plugin {
     }
 
     return wrapper;
+  }
+
+  private createArrow(): HTMLElement {
+    const arrow = document.createElement('div');
+    arrow.className = 'liuyao-arrow';
+    arrow.setAttribute('aria-hidden', 'true');
+    arrow.textContent = '→';
+    return arrow;
   }
 
   private createLineSegment(): HTMLElement {
@@ -123,19 +162,55 @@ function getHexagram(rawDigits: string): HexagramInfo | undefined {
   return HEXAGRAM_BY_BINARY.get(binary);
 }
 
-function buildDisplayLines(rawDigits: string, hexagram: HexagramInfo) {
+function buildPrimaryDisplayLines(rawDigits: string, hexagram: HexagramInfo): DisplayLine[] {
   const digits = rawDigits.split('') as YaoValue[];
 
   return digits
-    .map((digit, index) => {
+    .map<DisplayLine>((digit, index) => {
       const setup = hexagram.setupInfo[index];
       return {
-        digit,
         description: setup?.description || '',
         relation: setup?.type || '',
         isYang: digit === '1' || digit === '3',
-        isChanging: digit === '0' || digit === '3',
+        tone: digit === '0' || digit === '3' ? 'changing' : 'default',
       };
     })
     .reverse();
+}
+
+function buildChangedDisplayLines(rawDigits: string, changedDigits: string, hexagram: HexagramInfo): DisplayLine[] {
+  const originalDigits = rawDigits.split('') as YaoValue[];
+  const nextDigits = changedDigits.split('') as YaoValue[];
+
+  return nextDigits
+    .map<DisplayLine>((digit, index) => {
+      const setup = hexagram.setupInfo[index];
+      const originalDigit = originalDigits[index];
+      const isChangedLine = originalDigit === '0' || originalDigit === '3';
+
+      return {
+        description: setup?.description || '',
+        relation: setup?.type || '',
+        isYang: digit === '1' || digit === '3',
+        tone: isChangedLine ? 'default' : 'muted',
+      };
+    })
+    .reverse();
+}
+
+function getChangedDigits(rawDigits: string): string {
+  return rawDigits
+    .split('')
+    .map((digit) => {
+      if (digit === '0') {
+        return '1';
+      }
+
+      if (digit === '3') {
+        return '2';
+      }
+
+      return digit;
+    })
+    .join('');
 }
