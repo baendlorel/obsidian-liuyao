@@ -5,7 +5,8 @@
   "description_zh": "一个 Obsidian 插件，通过 ```liuyao datetime 012321``` 语法渲染六爻卦象图。",
   "scripts": {
     "build": "node esbuild.config.mjs",
-    "dev": "node esbuild.config.mjs --watch"
+    "dev": "node esbuild.config.mjs --watch",
+    "tag": "tsx scripts/tag.ts"
   },
   "author": {
     "name": "Kasukabe Tsumugi",
@@ -16,6 +17,7 @@
     "esbuild": "^0.25.4",
     "obsidian": "^1.12.3",
     "tslib": "^2.8.1",
+    "tsx": "^4.22.0",
     "typescript": "^6.0.3"
   },
   "dependencies": {
