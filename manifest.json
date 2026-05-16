@@ -1,10 +1,10 @@
 {
-  "id": "liuyao-renderer",
-  "name": "Liuyao Renderer",
+  "id": "liuyao",
+  "name": "Liuyao",
   "version": "0.1.0",
   "minAppVersion": "1.5.0",
-  "description": "Render \\liuyao{012321} syntax as six-line divination diagrams.",
+  "description": "Render Liuyao hexagrams from fenced code blocks.",
   "author": "Kasukabe Tsumugi",
-  "authorUrl": "https://github.com/baendlorel",
+  "authorUrl": "https://github.com/baendlorel/",
   "isDesktopOnly": false
 }

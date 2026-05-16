@@ -1,10 +1,8 @@
 import solarLunar, { type SolarLunarResult } from 'solarlunar';
-import { Plugin, type MarkdownPostProcessorContext } from 'obsidian';
+import { Plugin } from 'obsidian';
 import { getSixGods } from './core/6-gods.js';
 import { Hexagrams, Trigram, type HexagramInfo } from './core/common.js';
 import type { SixGods } from './types/index.js';
-
-const LIUYAO_DIGITS_PATTERN = /^[0-3]{6}$/;
 
 type YaoValue = '0' | '1' | '2' | '3';
 type LineTone = 'default' | 'changing' | 'muted';
@@ -49,13 +47,7 @@ function svg<T extends keyof SVGElementTagNameMap>(tag: T, attr: Record<string, 
 
 export default class LiuyaoRendererPlugin extends Plugin {
   onload(): void {
-    this.registerMarkdownCodeBlockProcessor('liuyao', (source, element) => {
-      this.renderLiuyaoBlock(source, element);
-    });
-
-    this.registerMarkdownCodeBlockProcessor('solarlunar', (source, element, ctx) => {
-      this.renderSolarLunarBlock(source, element, ctx);
-    });
+    this.registerMarkdownCodeBlockProcessor('liuyao', (source, element) => this.renderLiuyaoBlock(source, element));
   }
 
   private renderLiuyaoBlock(source: string, element: HTMLElement): void {
@@ -63,13 +55,12 @@ export default class LiuyaoRendererPlugin extends Plugin {
     const rawDigits = parsedBlock.rawDigits;
 
     element.empty();
-
     const panel = h('section', 'liuyao-panel');
 
     if (parsedBlock.lunarInfo && parsedBlock.parsedDate && parsedBlock.dateInput) {
       panel.append(this.createSolarLunarCard(parsedBlock.dateInput, parsedBlock.parsedDate, parsedBlock.lunarInfo));
     } else if (parsedBlock.dateError) {
-      panel.append(this.createSolarLunarError(parsedBlock.dateError));
+      panel.append(h('div', 'solarlunar-error', parsedBlock.dateError));
     }
 
     if (!rawDigits) {
@@ -94,10 +85,10 @@ export default class LiuyaoRendererPlugin extends Plugin {
 
     const wrapper = h('div', 'liuyao-block');
 
-    const primaryLines = buildPrimaryDisplayLines(rawDigits, hexagram, parsedBlock.sixGods);
+    const primaryLines = buildPrimaryYaos(rawDigits, hexagram, parsedBlock.sixGods);
     wrapper.append(this.createCard(rawDigits, hexagram, primaryLines));
 
-    const changedDigits = getChangedDigits(rawDigits);
+    const changedDigits = changeYaos(rawDigits);
     if (changedDigits !== rawDigits) {
       const changedHexagram = getHexagram(changedDigits);
 
@@ -110,42 +101,12 @@ export default class LiuyaoRendererPlugin extends Plugin {
 
       wrapper.append(this.createArrow());
       wrapper.append(
-        this.createCard(
-          changedDigits,
-          changedHexagram,
-          buildChangedDisplayLines(rawDigits, changedDigits, changedHexagram),
-        ),
+        this.createCard(changedDigits, changedHexagram, buildChangedYaos(rawDigits, changedDigits, changedHexagram)),
       );
     }
 
     panel.append(wrapper);
     element.append(panel);
-  }
-
-  private renderSolarLunarBlock(source: string, element: HTMLElement, ctx: MarkdownPostProcessorContext): void {
-    const rawInput = resolveBlockInput('solarlunar', source, element, ctx);
-
-    element.empty();
-
-    if (!rawInput) {
-      element.append(this.createSolarLunarError('无效日期：空输入'));
-      return;
-    }
-
-    const parsedDate = new Date(rawInput);
-    if (Number.isNaN(parsedDate.getTime())) {
-      element.append(this.createSolarLunarError(`无效日期：${rawInput}`));
-      return;
-    }
-
-    const lunarInfo = solarLunar.solar2lunar(parsedDate.getFullYear(), parsedDate.getMonth() + 1, parsedDate.getDate());
-
-    if (lunarInfo === -1) {
-      element.append(this.createSolarLunarError(`无效日期：${rawInput}`));
-      return;
-    }
-
-    element.append(this.createSolarLunarCard(rawInput, parsedDate, lunarInfo));
   }
 
   private createCard(rawDigits: string, hexagram: HexagramInfo, lines: DisplayLine[]): HTMLElement {
@@ -160,18 +121,17 @@ export default class LiuyaoRendererPlugin extends Plugin {
 
     for (const lineInfo of lines) {
       const row = h('div', 'liuyao-card__row');
-
       const left = h('span', 'liuyao-card__text liuyao-card__text--left', lineInfo.description);
-
       const middle = h('div', 'liuyao-line');
+
       middle.dataset.kind = lineInfo.isYang ? 'yang' : 'yin';
       middle.dataset.tone = lineInfo.tone;
       middle.setAttribute('aria-hidden', 'true');
 
-      middle.append(this.createLineSegment());
+      middle.append(h('span', 'liuyao-line__segment'));
       if (!lineInfo.isYang) {
-        middle.append(this.createLineGap());
-        middle.append(this.createLineSegment());
+        middle.append(h('span', 'liuyao-line__gap'));
+        middle.append(h('span', 'liuyao-line__segment'));
       }
 
       const right = h('span', 'liuyao-card__text liuyao-card__text--right', lineInfo.relation ?? '');
@@ -208,14 +168,6 @@ export default class LiuyaoRendererPlugin extends Plugin {
     return arrow;
   }
 
-  private createLineSegment(): HTMLElement {
-    return h('span', 'liuyao-line__segment');
-  }
-
-  private createLineGap(): HTMLElement {
-    return h('span', 'liuyao-line__gap');
-  }
-
   private createSolarLunarCard(rawInput: string, parsedDate: Date, lunarInfo: SolarLunarResult): HTMLElement {
     const wrapper = h('section', 'solarlunar-card');
 
@@ -230,24 +182,12 @@ export default class LiuyaoRendererPlugin extends Plugin {
 
     rows.forEach(([label, value]) => {
       const row = h('div', 'solarlunar-card__row');
-
-      const labelEl = h('span', 'solarlunar-card__label', label);
-      const valueEl = h('span', 'solarlunar-card__value', value);
-
-      row.append(labelEl, valueEl);
+      row.append(h('span', 'solarlunar-card__label', label), h('span', 'solarlunar-card__value', value));
       wrapper.append(row);
     });
 
     return wrapper;
   }
-
-  private createSolarLunarError(message: string): HTMLElement {
-    return h('div', 'solarlunar-error', message);
-  }
-}
-
-function isLiuyaoDigits(value: string | undefined): value is string {
-  return value !== undefined && LIUYAO_DIGITS_PATTERN.test(value);
 }
 
 function parseLiuyaoBlock(source: string): ParsedLiuyaoBlock {
@@ -298,7 +238,7 @@ function parseLiuyaoBlock(source: string): ParsedLiuyaoBlock {
 function parseLiuyaoSource(source: string): string | null {
   source = source.replace(/\s+/g, '');
 
-  if (isLiuyaoDigits(source)) {
+  if (source !== undefined && /^[0-3]{6}$/.test(source)) {
     return source;
   }
 
@@ -318,7 +258,6 @@ function parseTrigramSequence(value: string): string | null {
   }
 
   const digits = trigrams.map((name) => TRIGRAM_TO_DIGIT.get(name));
-
   return digits.every((digit): digit is YaoValue => digit !== undefined) ? digits.join('') : null;
 }
 
@@ -331,7 +270,7 @@ function getHexagram(rawDigits: string): HexagramInfo | undefined {
   return HEXAGRAM_BY_BINARY.get(binary);
 }
 
-function buildPrimaryDisplayLines(rawDigits: string, hexagram: HexagramInfo, sixGods?: SixGods[]): DisplayLine[] {
+function buildPrimaryYaos(rawDigits: string, hexagram: HexagramInfo, sixGods?: SixGods[]): DisplayLine[] {
   const digits = rawDigits.split('') as YaoValue[];
 
   return digits
@@ -348,7 +287,7 @@ function buildPrimaryDisplayLines(rawDigits: string, hexagram: HexagramInfo, six
     .reverse();
 }
 
-function buildChangedDisplayLines(rawDigits: string, changedDigits: string, hexagram: HexagramInfo): DisplayLine[] {
+function buildChangedYaos(rawDigits: string, changedDigits: string, hexagram: HexagramInfo): DisplayLine[] {
   const originalDigits = rawDigits.split('') as YaoValue[];
   const nextDigits = changedDigits.split('') as YaoValue[];
 
@@ -369,52 +308,20 @@ function buildChangedDisplayLines(rawDigits: string, changedDigits: string, hexa
     .reverse();
 }
 
-function getChangedDigits(rawDigits: string): string {
+function changeYaos(rawDigits: string): string {
   return rawDigits
     .split('')
-    .map((digit) => {
-      if (digit === '0') {
-        return '1';
-      }
-
-      if (digit === '3') {
-        return '2';
-      }
-
-      return digit;
-    })
+    .map((digit) => '1122'[digit as any])
     .join('');
 }
 
-function resolveBlockInput(
-  language: string,
-  source: string,
-  element: HTMLElement,
-  ctx: MarkdownPostProcessorContext,
-): string {
-  const sectionText = ctx.getSectionInfo(element)?.text;
-  if (sectionText) {
-    const firstLine = sectionText.split('\n', 1)[0] ?? '';
-    const fenceMatch = firstLine.match(new RegExp(`^\\s*\`\`\`${language}(?:\\s+(.+))?\\s*$`));
-    const headerInput = fenceMatch?.[1]?.trim() ?? '';
-
-    if (headerInput) {
-      return headerInput;
-    }
-  }
-
-  return source.trim();
-}
-
 function formatGregorianDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hour = String(date.getHours()).padStart(2, '0');
-  const minute = String(date.getMinutes()).padStart(2, '0');
-  const second = String(date.getSeconds()).padStart(2, '0');
-
-  return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const h = String(date.getHours()).padStart(2, '0');
+  const min = String(date.getMinutes()).padStart(2, '0');
+  return `${y}-${m}-${d} ${h}:${min}`;
 }
 
 function getShichen(date: Date): string {
