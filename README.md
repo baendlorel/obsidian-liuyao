@@ -20,8 +20,10 @@
 
 ## 开发
 
-1. 安装依赖：`npm install`
-2. 构建插件：`npm run build`
+当前源码入口在 `src/main.ts`，构建产物输出到仓库根目录的 `main.js`。
+
+1. 安装依赖：`pnpm install`
+2. 构建插件：`pnpm build`
 
 构建后会生成以下文件：
 

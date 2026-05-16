@@ -128,7 +128,7 @@ export default class LiuyaoRendererPlugin extends Plugin {
     y2: number,
     color: string,
   ): SVGLineElement {
-    const line = document.createElementNS(svgNamespace, 'line');
+    const line = document.createElementNS(svgNamespace, 'line') as SVGLineElement;
     line.setAttribute('class', 'liuyao-diagram__line');
     line.setAttribute('x1', String(x1));
     line.setAttribute('y1', String(y1));
