@@ -7,7 +7,7 @@
 .liuyao-card {
   --liuyao-side-width: 7.5rem;
   --liuyao-line-width: 8.5rem;
-  --liuyao-line-gap: 1rem;
+  --liuyao-line-gap: 2rem;
   display: grid;
   gap: 0.5rem;
   width: min(100%, 34rem);
