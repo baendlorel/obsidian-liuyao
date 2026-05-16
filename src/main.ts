@@ -1,5 +1,5 @@
 import { Plugin } from 'obsidian';
-import { Hexagrams, type HexagramInfo } from './core/common.js';
+import { Hexagrams, Trigram, type HexagramInfo } from './core/common.js';
 
 const LIUYAO_DIGITS_PATTERN = /^[0-3]{6}$/;
 
@@ -14,6 +14,9 @@ type DisplayLine = {
 };
 
 const HEXAGRAM_BY_BINARY = new Map(Hexagrams.list.map((hexagram) => [hexagram.binary, hexagram]));
+const TRIGRAM_TO_DIGIT = new Map(
+  Trigram.list.map((trigram) => [trigram.name, String(trigram.countOfYang) as YaoValue]),
+);
 
 export default class LiuyaoRendererPlugin extends Plugin {
   onload(): void {
@@ -30,7 +33,8 @@ export default class LiuyaoRendererPlugin extends Plugin {
     if (!rawDigits) {
       const error = document.createElement('div');
       error.className = 'liuyao-error';
-      error.textContent = 'Invalid liuyao block. Use 6 digits from 0 to 3, for example: 012321';
+      error.textContent =
+        'Invalid liuyao block. Use 6 digits from 0 to 3 or 6 trigram names, for example: 012321 or 坤坎离离震兑';
       element.append(error);
       return;
     }
@@ -144,13 +148,30 @@ function isLiuyaoDigits(value: string | undefined): value is string {
 }
 
 function parseLiuyaoSource(source: string): string | null {
-  const normalized = source.trim();
+  const normalized = source.replace(/\s+/g, '');
 
   if (isLiuyaoDigits(normalized)) {
     return normalized;
   }
 
+  const trigramDigits = parseTrigramSequence(normalized);
+  if (trigramDigits) {
+    return trigramDigits;
+  }
+
   return null;
+}
+
+function parseTrigramSequence(value: string): string | null {
+  const trigrams = Array.from(value);
+
+  if (trigrams.length !== 6) {
+    return null;
+  }
+
+  const digits = trigrams.map((trigramName) => TRIGRAM_TO_DIGIT.get(trigramName));
+
+  return digits.every((digit): digit is YaoValue => digit !== undefined) ? digits.join('') : null;
 }
 
 function getHexagram(rawDigits: string): HexagramInfo | undefined {
