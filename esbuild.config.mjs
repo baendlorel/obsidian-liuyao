@@ -4,7 +4,10 @@ import esbuild from 'esbuild';
 
 const watch = process.argv.includes('--watch');
 const outdir = 'dist';
-const staticFiles = ['manifest.json', 'src/styles.css'];
+const staticFiles = [
+  { from: 'manifest.json', to: 'manifest.json' },
+  { from: 'src/styles.css', to: 'styles.css' },
+];
 
 async function prepareDist() {
   if (!watch) {
@@ -14,10 +17,10 @@ async function prepareDist() {
   await mkdir(outdir, { recursive: true });
 
   await Promise.all(
-    staticFiles.map(async (file) => {
-      const destination = join(outdir, file);
+    staticFiles.map(async ({ from, to }) => {
+      const destination = join(outdir, to);
       await mkdir(dirname(destination), { recursive: true });
-      await cp(file, destination);
+      await cp(from, destination);
     }),
   );
 }

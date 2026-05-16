@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "minAppVersion": "1.5.0",
   "description": "Render \\liuyao{012321} syntax as six-line divination diagrams.",
-  "author": "GitHub Copilot",
-  "authorUrl": "https://github.com/features/copilot",
+  "author": "Kasukabe Tsumugi",
+  "authorUrl": "https://github.com/baendlorel",
   "isDesktopOnly": false
 }
