@@ -33,10 +33,11 @@
   width: max-content;
   max-width: 100%;
   padding: 0.8rem 0.7rem;
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 10px;
-  background: var(--background-secondary);
   flex: 0 0 auto;
+}
+
+.liuyao-card--without-gods {
+  --liuyao-god-width: 0;
 }
 
 .liuyao-arrow {
@@ -67,6 +68,10 @@
   gap: 0.35rem;
 }
 
+.liuyao-card--without-gods .liuyao-card__row {
+  grid-template-columns: var(--liuyao-left-width) var(--liuyao-line-width) var(--liuyao-right-width);
+}
+
 .liuyao-card__text {
   font-size: 0.855rem;
   line-height: 1.3;
@@ -92,6 +97,10 @@
   justify-content: center;
   width: var(--liuyao-line-width);
   color: #111111;
+}
+
+.theme-dark .liuyao-line[data-tone='default'] {
+  color: var(--text-normal);
 }
 
 .liuyao-line[data-tone='changing'] {
@@ -128,15 +137,12 @@
   width: min(100%, 28rem);
   padding: 0.85rem 0.9rem;
   margin: 1em 0;
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 10px;
-  background: var(--background-secondary);
 }
 
 .solarlunar-card__title {
   font-size: 0.95rem;
   font-weight: 700;
-  text-align: center;
+  text-align: left;
 }
 
 .solarlunar-card__row {

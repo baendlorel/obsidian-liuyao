@@ -24,6 +24,7 @@ type ParsedLiuyaoBlock = {
   lunarInfo?: SolarLunarResult;
   dateError?: string;
   sixGods?: SixGods[];
+  gzHour?: string;
 };
 
 const HEXAGRAM_BY_BINARY = new Map(Hexagrams.list.map((hexagram) => [hexagram.binary, hexagram]));
@@ -112,7 +113,7 @@ export default class LiuyaoRendererPlugin extends Plugin {
         this.createCard(
           changedDigits,
           changedHexagram,
-          buildChangedDisplayLines(rawDigits, changedDigits, changedHexagram, parsedBlock.sixGods),
+          buildChangedDisplayLines(rawDigits, changedDigits, changedHexagram),
         ),
       );
     }
@@ -149,8 +150,10 @@ export default class LiuyaoRendererPlugin extends Plugin {
 
   private createCard(rawDigits: string, hexagram: HexagramInfo, lines: DisplayLine[]): HTMLElement {
     const wrapper = h('section', 'liuyao-card');
+    const hasSixGods = lines.some((line) => line.sixGod);
     wrapper.setAttribute('aria-label', `${hexagram.family}宫 ${hexagram.id}`);
     wrapper.setAttribute('title', `${hexagram.family}宫 ${hexagram.id} ${rawDigits}`);
+    wrapper.classList.toggle('liuyao-card--without-gods', !hasSixGods);
 
     const header = h('div', 'liuyao-card__title', `${hexagram.family}宫 ${hexagram.id}`);
     wrapper.append(header);
@@ -158,7 +161,6 @@ export default class LiuyaoRendererPlugin extends Plugin {
     for (const lineInfo of lines) {
       const row = h('div', 'liuyao-card__row');
 
-      const god = h('span', 'liuyao-card__text liuyao-card__text--god', lineInfo.sixGod);
       const left = h('span', 'liuyao-card__text liuyao-card__text--left', lineInfo.description);
 
       const middle = h('div', 'liuyao-line');
@@ -174,7 +176,11 @@ export default class LiuyaoRendererPlugin extends Plugin {
 
       const right = h('span', 'liuyao-card__text liuyao-card__text--right', lineInfo.relation ?? '');
 
-      row.append(god, left, middle, right);
+      if (hasSixGods) {
+        row.append(h('span', 'liuyao-card__text liuyao-card__text--god', lineInfo.sixGod));
+      }
+
+      row.append(left, middle, right);
       wrapper.append(row);
     }
 
@@ -213,7 +219,7 @@ export default class LiuyaoRendererPlugin extends Plugin {
   private createSolarLunarCard(rawInput: string, parsedDate: Date, lunarInfo: SolarLunarResult): HTMLElement {
     const wrapper = h('section', 'solarlunar-card');
 
-    const title = h('div', 'solarlunar-card__title', '起卦日期信息');
+    const title = h('div', 'solarlunar-card__title', '起卦时辰');
     wrapper.append(title);
 
     const rows: Array<[string, string]> = [
@@ -345,12 +351,7 @@ function buildPrimaryDisplayLines(rawDigits: string, hexagram: HexagramInfo, six
     .reverse();
 }
 
-function buildChangedDisplayLines(
-  rawDigits: string,
-  changedDigits: string,
-  hexagram: HexagramInfo,
-  sixGods?: SixGods[],
-): DisplayLine[] {
+function buildChangedDisplayLines(rawDigits: string, changedDigits: string, hexagram: HexagramInfo): DisplayLine[] {
   const originalDigits = rawDigits.split('') as YaoValue[];
   const nextDigits = changedDigits.split('') as YaoValue[];
 
@@ -361,7 +362,7 @@ function buildChangedDisplayLines(
       const isChangedLine = originalDigit === '0' || originalDigit === '3';
 
       return {
-        sixGod: sixGods?.[index] ?? '',
+        sixGod: '',
         description: setup?.description || '',
         relation: setup?.type || '',
         isYang: digit === '1' || digit === '3',
