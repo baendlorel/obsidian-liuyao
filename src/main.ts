@@ -31,6 +31,19 @@ const TRIGRAM_TO_DIGIT = new Map(
   Trigram.list.map((trigram) => [trigram.name, String(trigram.countOfYang) as YaoValue]),
 );
 
+function h<T extends keyof HTMLElementTagNameMap>(tag: T, cls: string, content: string): HTMLElementTagNameMap[T] {
+  const e = document.createElement(tag);
+  e.className = cls;
+  e.textContent = content;
+  return e;
+}
+
+function svg<T extends keyof SVGElementTagNameMap>(tag: T, attr: Record<string, string>): SVGElementTagNameMap[T] {
+  const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  Object.entries(attr).forEach(([key, value]) => e.setAttribute(key, value));
+  return e;
+}
+
 export default class LiuyaoRendererPlugin extends Plugin {
   onload(): void {
     this.registerMarkdownCodeBlockProcessor('liuyao', (source, element) => {
