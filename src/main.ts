@@ -31,10 +31,12 @@ const TRIGRAM_TO_DIGIT = new Map(
   Trigram.list.map((trigram) => [trigram.name, String(trigram.countOfYang) as YaoValue]),
 );
 
-function h<T extends keyof HTMLElementTagNameMap>(tag: T, cls: string, content: string): HTMLElementTagNameMap[T] {
+function h<T extends keyof HTMLElementTagNameMap>(tag: T, cls: string, content?: string): HTMLElementTagNameMap[T] {
   const e = document.createElement(tag);
   e.className = cls;
-  e.textContent = content;
+  if (content) {
+    e.textContent = content;
+  }
   return e;
 }
 
@@ -61,8 +63,7 @@ export default class LiuyaoRendererPlugin extends Plugin {
 
     element.empty();
 
-    const panel = document.createElement('section');
-    panel.className = 'liuyao-panel';
+    const panel = h('section', 'liuyao-panel');
 
     if (parsedBlock.lunarInfo && parsedBlock.parsedDate && parsedBlock.dateInput) {
       panel.append(this.createSolarLunarCard(parsedBlock.dateInput, parsedBlock.parsedDate, parsedBlock.lunarInfo));
@@ -71,10 +72,11 @@ export default class LiuyaoRendererPlugin extends Plugin {
     }
 
     if (!rawDigits) {
-      const error = document.createElement('div');
-      error.className = 'liuyao-error';
-      error.textContent =
-        'Invalid liuyao block. Use 6 digits from 0 to 3 or 6 trigram names, or put a date on the first non-empty line and the hexagram on the second line.';
+      const error = h(
+        'div',
+        'liuyao-error',
+        'Invalid liuyao block. Use 6 digits from 0 to 3 or 6 trigram names, or put a date on the first non-empty line and the hexagram on the second line.',
+      );
       panel.append(error);
       element.append(panel);
       return;
@@ -83,16 +85,13 @@ export default class LiuyaoRendererPlugin extends Plugin {
     const hexagram = getHexagram(rawDigits);
 
     if (!hexagram) {
-      const error = document.createElement('div');
-      error.className = 'liuyao-error';
-      error.textContent = `Unable to find hexagram data for ${rawDigits}`;
+      const error = h('div', 'liuyao-error', `Unable to find hexagram data for ${rawDigits}`);
       panel.append(error);
       element.append(panel);
       return;
     }
 
-    const wrapper = document.createElement('div');
-    wrapper.className = 'liuyao-block';
+    const wrapper = h('div', 'liuyao-block');
 
     const primaryLines = buildPrimaryDisplayLines(rawDigits, hexagram, parsedBlock.sixGods);
     wrapper.append(this.createCard(rawDigits, hexagram, primaryLines));
@@ -102,9 +101,7 @@ export default class LiuyaoRendererPlugin extends Plugin {
       const changedHexagram = getHexagram(changedDigits);
 
       if (!changedHexagram) {
-        const error = document.createElement('div');
-        error.className = 'liuyao-error';
-        error.textContent = `Unable to find changed hexagram data for ${changedDigits}`;
+        const error = h('div', 'liuyao-error', `Unable to find changed hexagram data for ${changedDigits}`);
         panel.append(error);
         element.append(panel);
         return;
@@ -151,30 +148,20 @@ export default class LiuyaoRendererPlugin extends Plugin {
   }
 
   private createCard(rawDigits: string, hexagram: HexagramInfo, lines: DisplayLine[]): HTMLElement {
-    const wrapper = document.createElement('section');
-    wrapper.className = 'liuyao-card';
+    const wrapper = h('section', 'liuyao-card');
     wrapper.setAttribute('aria-label', `${hexagram.family}宫 ${hexagram.id}`);
     wrapper.setAttribute('title', `${hexagram.family}宫 ${hexagram.id} ${rawDigits}`);
 
-    const header = document.createElement('div');
-    header.className = 'liuyao-card__title';
-    header.textContent = `${hexagram.family}宫 ${hexagram.id}`;
+    const header = h('div', 'liuyao-card__title', `${hexagram.family}宫 ${hexagram.id}`);
     wrapper.append(header);
 
     for (const lineInfo of lines) {
-      const row = document.createElement('div');
-      row.className = 'liuyao-card__row';
+      const row = h('div', 'liuyao-card__row');
 
-      const god = document.createElement('span');
-      god.className = 'liuyao-card__text liuyao-card__text--god';
-      god.textContent = lineInfo.sixGod;
+      const god = h('span', 'liuyao-card__text liuyao-card__text--god', lineInfo.sixGod);
+      const left = h('span', 'liuyao-card__text liuyao-card__text--left', lineInfo.description);
 
-      const left = document.createElement('span');
-      left.className = 'liuyao-card__text liuyao-card__text--left';
-      left.textContent = lineInfo.description;
-
-      const middle = document.createElement('div');
-      middle.className = 'liuyao-line';
+      const middle = h('div', 'liuyao-line');
       middle.dataset.kind = lineInfo.isYang ? 'yang' : 'yin';
       middle.dataset.tone = lineInfo.tone;
       middle.setAttribute('aria-hidden', 'true');
@@ -185,9 +172,7 @@ export default class LiuyaoRendererPlugin extends Plugin {
         middle.append(this.createLineSegment());
       }
 
-      const right = document.createElement('span');
-      right.className = 'liuyao-card__text liuyao-card__text--right';
-      right.textContent = lineInfo.relation ?? '';
+      const right = h('span', 'liuyao-card__text liuyao-card__text--right', lineInfo.relation ?? '');
 
       row.append(god, left, middle, right);
       wrapper.append(row);
@@ -197,32 +182,38 @@ export default class LiuyaoRendererPlugin extends Plugin {
   }
 
   private createArrow(): HTMLElement {
-    const arrow = document.createElement('div');
-    arrow.className = 'liuyao-arrow';
+    const arrow = h('div', 'liuyao-arrow');
     arrow.setAttribute('aria-hidden', 'true');
-    arrow.textContent = '→';
+
+    const icon = svg('svg', {
+      class: 'liuyao-arrow__icon',
+      viewBox: '0 0 20 20',
+      width: '20',
+      height: '20',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': '1.8',
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+    });
+    icon.append(svg('path', { d: 'M4 10h12' }), svg('path', { d: 'm11 5 5 5-5 5' }));
+    arrow.append(icon);
+
     return arrow;
   }
 
   private createLineSegment(): HTMLElement {
-    const segment = document.createElement('span');
-    segment.className = 'liuyao-line__segment';
-    return segment;
+    return h('span', 'liuyao-line__segment');
   }
 
   private createLineGap(): HTMLElement {
-    const gap = document.createElement('span');
-    gap.className = 'liuyao-line__gap';
-    return gap;
+    return h('span', 'liuyao-line__gap');
   }
 
   private createSolarLunarCard(rawInput: string, parsedDate: Date, lunarInfo: SolarLunarResult): HTMLElement {
-    const wrapper = document.createElement('section');
-    wrapper.className = 'solarlunar-card';
+    const wrapper = h('section', 'solarlunar-card');
 
-    const title = document.createElement('div');
-    title.className = 'solarlunar-card__title';
-    title.textContent = '起卦日期信息';
+    const title = h('div', 'solarlunar-card__title', '起卦日期信息');
     wrapper.append(title);
 
     const rows: Array<[string, string]> = [
@@ -235,16 +226,10 @@ export default class LiuyaoRendererPlugin extends Plugin {
     ];
 
     rows.forEach(([label, value]) => {
-      const row = document.createElement('div');
-      row.className = 'solarlunar-card__row';
+      const row = h('div', 'solarlunar-card__row');
 
-      const labelEl = document.createElement('span');
-      labelEl.className = 'solarlunar-card__label';
-      labelEl.textContent = label;
-
-      const valueEl = document.createElement('span');
-      valueEl.className = 'solarlunar-card__value';
-      valueEl.textContent = value;
+      const labelEl = h('span', 'solarlunar-card__label', label);
+      const valueEl = h('span', 'solarlunar-card__value', value);
 
       row.append(labelEl, valueEl);
       wrapper.append(row);
@@ -254,10 +239,7 @@ export default class LiuyaoRendererPlugin extends Plugin {
   }
 
   private createSolarLunarError(message: string): HTMLElement {
-    const error = document.createElement('div');
-    error.className = 'solarlunar-error';
-    error.textContent = message;
-    return error;
+    return h('div', 'solarlunar-error', message);
   }
 }
 
@@ -311,13 +293,13 @@ function parseLiuyaoBlock(source: string): ParsedLiuyaoBlock {
 }
 
 function parseLiuyaoSource(source: string): string | null {
-  const normalized = source.replace(/\s+/g, '');
+  source = source.replace(/\s+/g, '');
 
-  if (isLiuyaoDigits(normalized)) {
-    return normalized;
+  if (isLiuyaoDigits(source)) {
+    return source;
   }
 
-  const trigramDigits = parseTrigramSequence(normalized);
+  const trigramDigits = parseTrigramSequence(source);
   if (trigramDigits) {
     return trigramDigits;
   }
@@ -332,7 +314,7 @@ function parseTrigramSequence(value: string): string | null {
     return null;
   }
 
-  const digits = trigrams.map((trigramName) => TRIGRAM_TO_DIGIT.get(trigramName));
+  const digits = trigrams.map((name) => TRIGRAM_TO_DIGIT.get(name));
 
   return digits.every((digit): digit is YaoValue => digit !== undefined) ? digits.join('') : null;
 }
