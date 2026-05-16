@@ -1,3 +1,15 @@
+.liuyao-panel {
+  display: grid;
+  gap: 0.55rem;
+  margin: 1em 0;
+}
+
+.liuyao-panel .liuyao-block,
+.liuyao-panel .solarlunar-card,
+.liuyao-panel .solarlunar-error {
+  margin: 0;
+}
+
 .liuyao-block {
   display: flex;
   align-items: center;
@@ -11,6 +23,7 @@
 }
 
 .liuyao-card {
+  --liuyao-god-width: 2.35rem;
   --liuyao-left-width: 5rem;
   --liuyao-right-width: 1.4rem;
   --liuyao-line-width: 6.9rem;
@@ -46,7 +59,9 @@
 
 .liuyao-card__row {
   display: grid;
-  grid-template-columns: var(--liuyao-left-width) var(--liuyao-line-width) var(--liuyao-right-width);
+  grid-template-columns: var(--liuyao-god-width) var(--liuyao-left-width) var(--liuyao-line-width) var(
+      --liuyao-right-width
+    );
   justify-content: center;
   align-items: center;
   gap: 0.35rem;
@@ -58,6 +73,11 @@
 }
 
 .liuyao-card__text--left {
+  text-align: right;
+}
+
+.liuyao-card__text--god {
+  color: var(--text-muted);
   text-align: right;
 }
 

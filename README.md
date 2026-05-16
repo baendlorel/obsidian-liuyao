@@ -10,7 +10,16 @@ This plugin renders six-line divination diagrams in Obsidian from a fenced `liuy
 ```
 ```
 
-Only the fenced `liuyao` code block syntax is supported.
+The `liuyao` block can also include a date on the first non-empty line and the hexagram input on the second line:
+
+```text
+```liuyao
+2026-05-16 09:30
+012012
+```
+```
+
+When a date is provided, the plugin shows the solar-lunar information above the hexagram and derives the six gods from the day stem.
 
 The plugin also supports a `solarlunar` fenced block for date information:
 
@@ -33,6 +42,8 @@ or:
 - Each digit must be one of `0`, `1`, `2`, or `3`.
 - The first digit is the bottom line, and the sixth digit is the top line.
 - The plugin looks up the matching hexagram metadata from `src/core/common.ts`.
+- A `liuyao` block may optionally use the first non-empty line as a date and the second non-empty line as the hexagram input.
+- The hexagram input also supports 6 trigram names, such as `坤坎离离震兑`.
 
 Digit meanings:
 
@@ -43,6 +54,7 @@ Digit meanings:
 
 The rendered card shows:
 
+- The six gods on the far left when a valid date is provided
 - The family and hexagram name at the top, such as `乾宫 乾为天`
 - The line relation text on the left of each line
 - The `世` or `应` marker on the right when present
@@ -71,11 +83,12 @@ Copy those three files into your vault at `.obsidian/plugins/liuyao-renderer/`.
 
 ```text
 ```liuyao
+2026-05-16 09:30
 123123
 ```
 ```
 
-5. Switch to Reading view and confirm the card shows the hexagram title, six annotated lines, and any `世` or `应` markers.
+5. Switch to Reading view and confirm the card shows the date information above the hexagram, the six gods on the far left, the hexagram title, and any `世` or `应` markers.
 
 6. Test the solar-lunar block with a valid date:
 

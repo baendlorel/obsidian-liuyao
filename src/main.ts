@@ -1,6 +1,8 @@
 import solarLunar, { type SolarLunarResult } from 'solarlunar';
 import { Plugin, type MarkdownPostProcessorContext } from 'obsidian';
+import { getSixGods } from './core/6-gods.js';
 import { Hexagrams, Trigram, type HexagramInfo } from './core/common.js';
+import type { SixGods } from './types/index.js';
 
 const LIUYAO_DIGITS_PATTERN = /^[0-3]{6}$/;
 
@@ -8,10 +10,20 @@ type YaoValue = '0' | '1' | '2' | '3';
 type LineTone = 'default' | 'changing' | 'muted';
 
 type DisplayLine = {
+  sixGod: string;
   description: string;
   relation: string;
   isYang: boolean;
   tone: LineTone;
+};
+
+type ParsedLiuyaoBlock = {
+  rawDigits: string | null;
+  dateInput?: string;
+  parsedDate?: Date;
+  lunarInfo?: SolarLunarResult;
+  dateError?: string;
+  sixGods?: SixGods[];
 };
 
 const HEXAGRAM_BY_BINARY = new Map(Hexagrams.list.map((hexagram) => [hexagram.binary, hexagram]));
@@ -31,16 +43,27 @@ export default class LiuyaoRendererPlugin extends Plugin {
   }
 
   private renderLiuyaoBlock(source: string, element: HTMLElement): void {
-    const rawDigits = parseLiuyaoSource(source);
+    const parsedBlock = parseLiuyaoBlock(source);
+    const rawDigits = parsedBlock.rawDigits;
 
     element.empty();
+
+    const panel = document.createElement('section');
+    panel.className = 'liuyao-panel';
+
+    if (parsedBlock.lunarInfo && parsedBlock.parsedDate && parsedBlock.dateInput) {
+      panel.append(this.createSolarLunarCard(parsedBlock.dateInput, parsedBlock.parsedDate, parsedBlock.lunarInfo));
+    } else if (parsedBlock.dateError) {
+      panel.append(this.createSolarLunarError(parsedBlock.dateError));
+    }
 
     if (!rawDigits) {
       const error = document.createElement('div');
       error.className = 'liuyao-error';
       error.textContent =
-        'Invalid liuyao block. Use 6 digits from 0 to 3 or 6 trigram names, for example: 012321 or 坤坎离离震兑';
-      element.append(error);
+        'Invalid liuyao block. Use 6 digits from 0 to 3 or 6 trigram names, or put a date on the first non-empty line and the hexagram on the second line.';
+      panel.append(error);
+      element.append(panel);
       return;
     }
 
@@ -50,14 +73,15 @@ export default class LiuyaoRendererPlugin extends Plugin {
       const error = document.createElement('div');
       error.className = 'liuyao-error';
       error.textContent = `Unable to find hexagram data for ${rawDigits}`;
-      element.append(error);
+      panel.append(error);
+      element.append(panel);
       return;
     }
 
     const wrapper = document.createElement('div');
     wrapper.className = 'liuyao-block';
 
-    const primaryLines = buildPrimaryDisplayLines(rawDigits, hexagram);
+    const primaryLines = buildPrimaryDisplayLines(rawDigits, hexagram, parsedBlock.sixGods);
     wrapper.append(this.createCard(rawDigits, hexagram, primaryLines));
 
     const changedDigits = getChangedDigits(rawDigits);
@@ -68,7 +92,8 @@ export default class LiuyaoRendererPlugin extends Plugin {
         const error = document.createElement('div');
         error.className = 'liuyao-error';
         error.textContent = `Unable to find changed hexagram data for ${changedDigits}`;
-        element.append(error);
+        panel.append(error);
+        element.append(panel);
         return;
       }
 
@@ -77,12 +102,13 @@ export default class LiuyaoRendererPlugin extends Plugin {
         this.createCard(
           changedDigits,
           changedHexagram,
-          buildChangedDisplayLines(rawDigits, changedDigits, changedHexagram),
+          buildChangedDisplayLines(rawDigits, changedDigits, changedHexagram, parsedBlock.sixGods),
         ),
       );
     }
 
-    element.append(wrapper);
+    panel.append(wrapper);
+    element.append(panel);
   }
 
   private renderSolarLunarBlock(source: string, element: HTMLElement, ctx: MarkdownPostProcessorContext): void {
@@ -126,6 +152,10 @@ export default class LiuyaoRendererPlugin extends Plugin {
       const row = document.createElement('div');
       row.className = 'liuyao-card__row';
 
+      const god = document.createElement('span');
+      god.className = 'liuyao-card__text liuyao-card__text--god';
+      god.textContent = lineInfo.sixGod;
+
       const left = document.createElement('span');
       left.className = 'liuyao-card__text liuyao-card__text--left';
       left.textContent = lineInfo.description;
@@ -146,7 +176,7 @@ export default class LiuyaoRendererPlugin extends Plugin {
       right.className = 'liuyao-card__text liuyao-card__text--right';
       right.textContent = lineInfo.relation ?? '';
 
-      row.append(left, middle, right);
+      row.append(god, left, middle, right);
       wrapper.append(row);
     }
 
@@ -222,6 +252,51 @@ function isLiuyaoDigits(value: string | undefined): value is string {
   return value !== undefined && LIUYAO_DIGITS_PATTERN.test(value);
 }
 
+function parseLiuyaoBlock(source: string): ParsedLiuyaoBlock {
+  const lines = source
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  if (lines.length === 0) {
+    return { rawDigits: null };
+  }
+
+  if (lines.length === 1) {
+    const onlyLine = lines[0];
+    return { rawDigits: onlyLine ? parseLiuyaoSource(onlyLine) : null };
+  }
+
+  const dateInput = lines[0];
+  const diagramInput = lines[1];
+
+  if (!dateInput || !diagramInput) {
+    return { rawDigits: null };
+  }
+
+  const parsedDate = new Date(dateInput);
+  const result: ParsedLiuyaoBlock = {
+    dateInput,
+    rawDigits: parseLiuyaoSource(diagramInput),
+  };
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    result.dateError = `无效日期：${dateInput}`;
+    return result;
+  }
+
+  const lunarInfo = solarLunar.solar2lunar(parsedDate.getFullYear(), parsedDate.getMonth() + 1, parsedDate.getDate());
+  if (lunarInfo === -1) {
+    result.dateError = `无效日期：${dateInput}`;
+    return result;
+  }
+
+  result.parsedDate = parsedDate;
+  result.lunarInfo = lunarInfo;
+  result.sixGods = getSixGods(lunarInfo.gzDay.charAt(0));
+  return result;
+}
+
 function parseLiuyaoSource(source: string): string | null {
   const normalized = source.replace(/\s+/g, '');
 
@@ -258,13 +333,14 @@ function getHexagram(rawDigits: string): HexagramInfo | undefined {
   return HEXAGRAM_BY_BINARY.get(binary);
 }
 
-function buildPrimaryDisplayLines(rawDigits: string, hexagram: HexagramInfo): DisplayLine[] {
+function buildPrimaryDisplayLines(rawDigits: string, hexagram: HexagramInfo, sixGods?: SixGods[]): DisplayLine[] {
   const digits = rawDigits.split('') as YaoValue[];
 
   return digits
     .map<DisplayLine>((digit, index) => {
       const setup = hexagram.setupInfo[index];
       return {
+        sixGod: sixGods?.[index] ?? '',
         description: setup?.description || '',
         relation: setup?.type || '',
         isYang: digit === '1' || digit === '3',
@@ -274,7 +350,12 @@ function buildPrimaryDisplayLines(rawDigits: string, hexagram: HexagramInfo): Di
     .reverse();
 }
 
-function buildChangedDisplayLines(rawDigits: string, changedDigits: string, hexagram: HexagramInfo): DisplayLine[] {
+function buildChangedDisplayLines(
+  rawDigits: string,
+  changedDigits: string,
+  hexagram: HexagramInfo,
+  sixGods?: SixGods[],
+): DisplayLine[] {
   const originalDigits = rawDigits.split('') as YaoValue[];
   const nextDigits = changedDigits.split('') as YaoValue[];
 
@@ -285,6 +366,7 @@ function buildChangedDisplayLines(rawDigits: string, changedDigits: string, hexa
       const isChangedLine = originalDigit === '0' || originalDigit === '3';
 
       return {
+        sixGod: sixGods?.[index] ?? '',
         description: setup?.description || '',
         relation: setup?.type || '',
         isYang: digit === '1' || digit === '3',
