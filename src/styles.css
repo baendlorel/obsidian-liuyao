@@ -1,53 +1,59 @@
 .liuyao-block {
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-inline: 0.25rem;
+  padding-bottom: 0.25rem;
   margin: 1em 0;
 }
 
 .liuyao-card {
-  --liuyao-side-width: 7.5rem;
-  --liuyao-line-width: 7.65rem;
-  --liuyao-line-gap: 2rem;
+  --liuyao-left-width: 5rem;
+  --liuyao-right-width: 1.4rem;
+  --liuyao-line-width: 6.9rem;
+  --liuyao-line-gap: 1.7rem;
   display: grid;
-  gap: 0.5rem;
+  gap: 0.4rem;
   width: max-content;
   max-width: 100%;
-  padding: 1rem 1.25rem;
+  padding: 0.8rem 0.7rem;
   border: 1px solid var(--background-modifier-border);
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--background-secondary);
+  flex: 0 0 auto;
 }
 
 .liuyao-arrow {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100%;
-  padding-top: 3.2rem;
+  min-width: 1.5rem;
   color: var(--text-muted);
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   line-height: 1;
+  flex: 0 0 auto;
 }
 
 .liuyao-card__title {
   text-align: center;
   font-weight: 700;
   letter-spacing: 0.04em;
+  font-size: 0.95rem;
 }
 
 .liuyao-card__row {
   display: grid;
-  grid-template-columns: var(--liuyao-side-width) var(--liuyao-line-width) var(--liuyao-side-width);
+  grid-template-columns: var(--liuyao-left-width) var(--liuyao-line-width) var(--liuyao-right-width);
   justify-content: center;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.35rem;
 }
 
 .liuyao-card__text {
-  font-size: 0.95rem;
+  font-size: 0.855rem;
   line-height: 1.3;
 }
 
@@ -78,7 +84,7 @@
 
 .liuyao-line__segment {
   width: calc((var(--liuyao-line-width) - var(--liuyao-line-gap)) / 2);
-  height: 0.6rem;
+  height: 0.52rem;
   border-radius: 1px;
   background: currentColor;
 }
@@ -94,13 +100,4 @@
 .liuyao-error {
   color: var(--text-error);
   font-size: 0.9em;
-}
-
-@media (max-width: 860px) {
-  .liuyao-arrow {
-    width: 100%;
-    min-height: auto;
-    padding-top: 0;
-    transform: rotate(90deg);
-  }
 }
