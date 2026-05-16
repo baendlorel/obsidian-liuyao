@@ -1,0 +1,15 @@
+.liuyao-inline {
+  display: inline-flex;
+  vertical-align: middle;
+  margin: 0 0.2em;
+}
+
+.liuyao-diagram {
+  width: 132px;
+  height: 172px;
+}
+
+.liuyao-diagram__line {
+  stroke-width: 10;
+  stroke-linecap: round;
+}
