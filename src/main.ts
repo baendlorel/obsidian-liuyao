@@ -25,7 +25,7 @@ type ParsedLiuyaoBlock = {
   gzHour?: string;
 };
 
-const HEXAGRAM_BY_BINARY = new Map(Hexagrams.list.map((hexagram) => [hexagram.binary, hexagram]));
+const HEXAGRAM_BY_BINARY = new Map(Hexagrams.list.map((hexagram) => [hexagram.b, hexagram]));
 const TRIGRAM_TO_DIGIT = new Map(
   Trigram.list.map((trigram) => [trigram.name, String(trigram.countOfYang) as YaoValue]),
 );
@@ -275,10 +275,10 @@ function buildPrimaryYaos(rawDigits: string, hexagram: HexagramInfo, sixGods?: S
 
   return digits
     .map<DisplayLine>((digit, index) => {
-      const setup = hexagram.setupInfo[index];
+      const setup = hexagram.setup[index];
       return {
         sixGod: sixGods?.[index] ?? '',
-        description: setup?.description || '',
+        description: setup?.desc || '',
         relation: setup?.type || '',
         isYang: digit === '1' || digit === '3',
         tone: digit === '0' || digit === '3' ? 'changing' : 'default',
@@ -293,13 +293,13 @@ function buildChangedYaos(rawDigits: string, changedDigits: string, hexagram: He
 
   return nextDigits
     .map<DisplayLine>((digit, index) => {
-      const setup = hexagram.setupInfo[index];
+      const setup = hexagram.setup[index];
       const originalDigit = originalDigits[index];
       const isChangedLine = originalDigit === '0' || originalDigit === '3';
 
       return {
         sixGod: '',
-        description: setup?.description || '',
+        description: setup?.desc || '',
         relation: setup?.type || '',
         isYang: digit === '1' || digit === '3',
         tone: isChangedLine ? 'default' : 'muted',

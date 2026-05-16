@@ -65,6 +65,6 @@ const _setupInfo = [
  * 装卦信息
  */
 export type SetupGramInfo = {
-  description: (typeof _setupInfo)[number];
+  desc: (typeof _setupInfo)[number];
   type?: '世' | '应';
 };
