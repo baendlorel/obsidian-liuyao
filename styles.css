@@ -4,6 +4,12 @@
   margin: 0 0.2em;
 }
 
+.liuyao-block {
+  display: flex;
+  justify-content: center;
+  margin: 1em 0;
+}
+
 .liuyao-diagram {
   width: 132px;
   height: 172px;
@@ -12,4 +18,9 @@
 .liuyao-diagram__line {
   stroke-width: 10;
   stroke-linecap: round;
+}
+
+.liuyao-error {
+  color: var(--text-error);
+  font-size: 0.9em;
 }

@@ -1,34 +1,71 @@
 # Obsidian Liuyao Plugin
 
-这个插件会把笔记中的 `\\liuyao{012321}` 语法渲染成六爻卦象。
+This plugin renders six-line divination diagrams in Obsidian.
 
-## 规则
+## Supported Syntax
 
-- 花括号内必须是 6 个数字。
-- 每一位只能是 `0`、`1`、`2`、`3`。
-- 第 1 位表示初爻，第 6 位表示上爻。
-- 实际绘制时按“从上到下”显示，所以会把输入按上爻到初爻的顺序渲染。
+Recommended syntax:
 
-数字含义如下：
+```text
+```liuyao
+012321
+```
+```
 
-- `0`：老阴，红色断线
-- `1`：少阳，黑色实线
-- `2`：少阴，黑色断线
-- `3`：老阳，红色实线
+Inline syntax is also supported:
 
-例如：`\\liuyao{012321}` 会按上到下绘制为 `少阳、少阴、老阳、少阴、少阳、老阴`。
+```text
+\liuyao{012321}
+```
 
-## 开发
+The fenced `liuyao` code block is more reliable in Obsidian because it uses the native code block rendering pipeline.
 
-当前源码入口在 `src/main.ts`，构建产物输出到仓库根目录的 `main.js`。
+## Rules
 
-1. 安装依赖：`pnpm install`
-2. 构建插件：`pnpm build`
+- The input must contain exactly 6 digits.
+- Each digit must be one of `0`, `1`, `2`, or `3`.
+- The first digit is the bottom line, and the sixth digit is the top line.
+- Rendering is displayed from top to bottom.
 
-构建后会生成以下文件：
+Digit meanings:
 
-- `main.js`
-- `manifest.json`
-- `styles.css`
+- `0`: old yin, broken red line
+- `1`: young yang, solid black line
+- `2`: young yin, broken black line
+- `3`: old yang, solid red line
 
-把这三个文件复制到你的 Obsidian vault 的 `.obsidian/plugins/liuyao-renderer/` 目录即可启用。
+Example: `012321` renders from top to bottom as `young yang, young yin, old yang, young yin, young yang, old yin`.
+
+## Development
+
+The source entry is `src/main.ts`, and build artifacts are written to `dist/`.
+
+1. Install dependencies: `pnpm install`
+2. Build the plugin: `pnpm build`
+
+The build produces:
+
+- `dist/main.js`
+- `dist/manifest.json`
+- `dist/styles.css`
+
+Copy those three files into your vault at `.obsidian/plugins/liuyao-renderer/`.
+
+## Testing
+
+1. Run `pnpm build`.
+2. Copy the files from `dist/` into `.obsidian/plugins/liuyao-renderer/` in your vault.
+3. Enable the plugin in Obsidian community plugins.
+4. Test with a fenced block:
+
+```text
+```liuyao
+012321
+```
+```
+
+5. Optionally test the inline form:
+
+```text
+\liuyao{012321}
+```

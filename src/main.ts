@@ -1,6 +1,8 @@
 import { Plugin } from 'obsidian';
 
-const LIUYAO_PATTERN = /\\liuyao\{([0-3]{6})\}/g;
+const LIUYAO_INLINE_PATTERN = /\\liuyao\{([0-3]{6})\}/g;
+const LIUYAO_INLINE_DETECT_PATTERN = /\\liuyao\{([0-3]{6})\}/;
+const LIUYAO_DIGITS_PATTERN = /^[0-3]{6}$/;
 
 type YaoValue = '0' | '1' | '2' | '3';
 
@@ -13,9 +15,32 @@ const YAO_LABELS: Record<YaoValue, string> = {
 
 export default class LiuyaoRendererPlugin extends Plugin {
   onload(): void {
+    this.registerMarkdownCodeBlockProcessor('liuyao', (source, element) => {
+      this.renderLiuyaoBlock(source, element);
+    });
+
     this.registerMarkdownPostProcessor((element) => {
       this.renderLiuyaoSyntax(element);
     });
+  }
+
+  private renderLiuyaoBlock(source: string, element: HTMLElement): void {
+    const rawDigits = parseLiuyaoSource(source);
+
+    element.empty();
+
+    if (!rawDigits) {
+      const error = document.createElement('div');
+      error.className = 'liuyao-error';
+      error.textContent = 'Invalid liuyao block. Use 6 digits from 0 to 3, for example: 012321';
+      element.append(error);
+      return;
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'liuyao-block';
+    wrapper.append(this.createDiagram(rawDigits));
+    element.append(wrapper);
   }
 
   private renderLiuyaoSyntax(root: HTMLElement): void {
@@ -35,7 +60,9 @@ export default class LiuyaoRendererPlugin extends Plugin {
           return NodeFilter.FILTER_REJECT;
         }
 
-        return LIUYAO_PATTERN.test(node.textContent ?? '') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        return LIUYAO_INLINE_DETECT_PATTERN.test(node.textContent ?? '')
+          ? NodeFilter.FILTER_ACCEPT
+          : NodeFilter.FILTER_REJECT;
       },
     });
 
@@ -55,7 +82,7 @@ export default class LiuyaoRendererPlugin extends Plugin {
 
   private replaceTextNode(textNode: Text): void {
     const content = textNode.textContent ?? '';
-    const matches = Array.from(content.matchAll(LIUYAO_PATTERN));
+    const matches = Array.from(content.matchAll(LIUYAO_INLINE_PATTERN));
 
     if (matches.length === 0) {
       return;
@@ -149,5 +176,16 @@ export default class LiuyaoRendererPlugin extends Plugin {
 }
 
 function isLiuyaoDigits(value: string | undefined): value is string {
-  return value !== undefined && /^[0-3]{6}$/.test(value);
+  return value !== undefined && LIUYAO_DIGITS_PATTERN.test(value);
+}
+
+function parseLiuyaoSource(source: string): string | null {
+  const normalized = source.trim();
+
+  if (LIUYAO_DIGITS_PATTERN.test(normalized)) {
+    return normalized;
+  }
+
+  const inlineMatch = normalized.match(/^\\liuyao\{([0-3]{6})\}$/);
+  return inlineMatch?.[1] ?? null;
 }
