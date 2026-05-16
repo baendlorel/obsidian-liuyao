@@ -12,6 +12,21 @@ This plugin renders six-line divination diagrams in Obsidian from a fenced `liuy
 
 Only the fenced `liuyao` code block syntax is supported.
 
+The plugin also supports a `solarlunar` fenced block for date information:
+
+```text
+```solarlunar 2026-05-16 09:30
+```
+```
+
+or:
+
+```text
+```solarlunar
+2026-05-16 09:30
+```
+```
+
 ## Rules
 
 - The input must contain exactly 6 digits.
@@ -61,3 +76,12 @@ Copy those three files into your vault at `.obsidian/plugins/liuyao-renderer/`.
 ```
 
 5. Switch to Reading view and confirm the card shows the hexagram title, six annotated lines, and any `世` or `应` markers.
+
+6. Test the solar-lunar block with a valid date:
+
+```text
+```solarlunar 2026-05-16 09:30
+```
+```
+
+7. Test an invalid date and confirm a red error message is shown.

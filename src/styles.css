@@ -101,3 +101,45 @@
   color: var(--text-error);
   font-size: 0.9em;
 }
+
+.solarlunar-card {
+  display: grid;
+  gap: 0.45rem;
+  width: min(100%, 28rem);
+  padding: 0.85rem 0.9rem;
+  margin: 1em 0;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 10px;
+  background: var(--background-secondary);
+}
+
+.solarlunar-card__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.solarlunar-card__row {
+  display: grid;
+  grid-template-columns: 4.25rem minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: start;
+}
+
+.solarlunar-card__label {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+.solarlunar-card__value {
+  min-width: 0;
+  font-size: 0.9rem;
+  word-break: break-word;
+}
+
+.solarlunar-error {
+  color: var(--text-error);
+  font-size: 0.9rem;
+  margin: 1em 0;
+}

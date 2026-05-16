@@ -1,4 +1,5 @@
-import { Plugin } from 'obsidian';
+import solarLunar, { type SolarLunarResult } from 'solarlunar';
+import { Plugin, type MarkdownPostProcessorContext } from 'obsidian';
 import { Hexagrams, Trigram, type HexagramInfo } from './core/common.js';
 
 const LIUYAO_DIGITS_PATTERN = /^[0-3]{6}$/;
@@ -22,6 +23,10 @@ export default class LiuyaoRendererPlugin extends Plugin {
   onload(): void {
     this.registerMarkdownCodeBlockProcessor('liuyao', (source, element) => {
       this.renderLiuyaoBlock(source, element);
+    });
+
+    this.registerMarkdownCodeBlockProcessor('solarlunar', (source, element, ctx) => {
+      this.renderSolarLunarBlock(source, element, ctx);
     });
   }
 
@@ -78,6 +83,32 @@ export default class LiuyaoRendererPlugin extends Plugin {
     }
 
     element.append(wrapper);
+  }
+
+  private renderSolarLunarBlock(source: string, element: HTMLElement, ctx: MarkdownPostProcessorContext): void {
+    const rawInput = resolveBlockInput('solarlunar', source, element, ctx);
+
+    element.empty();
+
+    if (!rawInput) {
+      element.append(this.createSolarLunarError('无效日期：空输入'));
+      return;
+    }
+
+    const parsedDate = new Date(rawInput);
+    if (Number.isNaN(parsedDate.getTime())) {
+      element.append(this.createSolarLunarError(`无效日期：${rawInput}`));
+      return;
+    }
+
+    const lunarInfo = solarLunar.solar2lunar(parsedDate.getFullYear(), parsedDate.getMonth() + 1, parsedDate.getDate());
+
+    if (lunarInfo === -1) {
+      element.append(this.createSolarLunarError(`无效日期：${rawInput}`));
+      return;
+    }
+
+    element.append(this.createSolarLunarCard(rawInput, parsedDate, lunarInfo));
   }
 
   private createCard(rawDigits: string, hexagram: HexagramInfo, lines: DisplayLine[]): HTMLElement {
@@ -140,6 +171,50 @@ export default class LiuyaoRendererPlugin extends Plugin {
     const gap = document.createElement('span');
     gap.className = 'liuyao-line__gap';
     return gap;
+  }
+
+  private createSolarLunarCard(rawInput: string, parsedDate: Date, lunarInfo: SolarLunarResult): HTMLElement {
+    const wrapper = document.createElement('section');
+    wrapper.className = 'solarlunar-card';
+
+    const title = document.createElement('div');
+    title.className = 'solarlunar-card__title';
+    title.textContent = '起卦日期信息';
+    wrapper.append(title);
+
+    const rows: Array<[string, string]> = [
+      ['原始输入', rawInput],
+      ['公历', `${formatGregorianDate(parsedDate)} ${lunarInfo.ncWeek}`],
+      ['农历', `${lunarInfo.yearCn}年 ${lunarInfo.monthCn}${lunarInfo.dayCn}${lunarInfo.isLeap ? '（闰月）' : ''}`],
+      ['干支', `${lunarInfo.gzYear}年 ${lunarInfo.gzMonth}月 ${lunarInfo.gzDay}日`],
+      ['生肖', lunarInfo.animal],
+      ['节气', lunarInfo.isTerm ? lunarInfo.term : '无'],
+    ];
+
+    rows.forEach(([label, value]) => {
+      const row = document.createElement('div');
+      row.className = 'solarlunar-card__row';
+
+      const labelEl = document.createElement('span');
+      labelEl.className = 'solarlunar-card__label';
+      labelEl.textContent = label;
+
+      const valueEl = document.createElement('span');
+      valueEl.className = 'solarlunar-card__value';
+      valueEl.textContent = value;
+
+      row.append(labelEl, valueEl);
+      wrapper.append(row);
+    });
+
+    return wrapper;
+  }
+
+  private createSolarLunarError(message: string): HTMLElement {
+    const error = document.createElement('div');
+    error.className = 'solarlunar-error';
+    error.textContent = message;
+    return error;
   }
 }
 
@@ -234,4 +309,35 @@ function getChangedDigits(rawDigits: string): string {
       return digit;
     })
     .join('');
+}
+
+function resolveBlockInput(
+  language: string,
+  source: string,
+  element: HTMLElement,
+  ctx: MarkdownPostProcessorContext,
+): string {
+  const sectionText = ctx.getSectionInfo(element)?.text;
+  if (sectionText) {
+    const firstLine = sectionText.split('\n', 1)[0] ?? '';
+    const fenceMatch = firstLine.match(new RegExp(`^\\s*\`\`\`${language}(?:\\s+(.+))?\\s*$`));
+    const headerInput = fenceMatch?.[1]?.trim() ?? '';
+
+    if (headerInput) {
+      return headerInput;
+    }
+  }
+
+  return source.trim();
+}
+
+function formatGregorianDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hour = String(date.getHours()).padStart(2, '0');
+  const minute = String(date.getMinutes()).padStart(2, '0');
+  const second = String(date.getSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
 }
