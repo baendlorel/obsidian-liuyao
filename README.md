@@ -17,24 +17,6 @@ The `liuyao` block can also include a date on the first non-empty line and the h
 2026-05-16 09:30
 012012
 ```
-```
-
-When a date is provided, the plugin shows the solar-lunar information above the hexagram and derives the six gods from the day stem.
-
-The plugin also supports a `solarlunar` fenced block for date information:
-
-```text
-```solarlunar 2026-05-16 09:30
-```
-```
-
-or:
-
-```text
-```solarlunar
-2026-05-16 09:30
-```
-```
 
 ## Rules
 
@@ -86,15 +68,7 @@ Copy those three files into your vault at `.obsidian/plugins/liuyao-renderer/`.
 2026-05-16 09:30
 123123
 ```
-```
 
 5. Switch to Reading view and confirm the card shows the date information above the hexagram, the six gods on the far left, the hexagram title, and any `世` or `应` markers.
 
-6. Test the solar-lunar block with a valid date:
-
-```text
-```solarlunar 2026-05-16 09:30
-```
-```
-
-7. Test an invalid date and confirm a red error message is shown.
+6. Test an invalid date and confirm a red error message is shown.
