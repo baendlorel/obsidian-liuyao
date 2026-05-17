@@ -1,6 +1,6 @@
 import solarLunar, { type SolarLunarResult } from 'solarlunar';
 import { Plugin } from 'obsidian';
-import { HexagramInfo, HexagramInfoTable, SixGod, SixGodTable, TrigramInfoTable } from 'liuyao';
+import { Hexagram, HexagramInfo, HexagramInfoTable, SixGod, SixGodTable, TrigramInfoTable } from 'liuyao';
 
 type YaoValue = '0' | '1' | '2' | '3';
 type LineTone = 'default' | 'changing' | 'muted';
@@ -105,14 +105,16 @@ export default class LiuyaoRendererPlugin extends Plugin {
     element.append(panel);
   }
 
-  private createCard(rawDigits: string, hexagram: HexagramInfo, lines: DisplayLine[]): HTMLElement {
+  private createCard(rawDigits: string, hexagramInfo: HexagramInfo, lines: DisplayLine[]): HTMLElement {
     const wrapper = h('section', 'liuyao-card');
     const hasSixGods = lines.some((line) => line.sixGod);
-    wrapper.setAttribute('aria-label', `${hexagram.palace}宫 ${hexagram.id}`);
-    wrapper.setAttribute('title', `${hexagram.palace}宫 ${hexagram.id} ${rawDigits}`);
+    const hexagram = Hexagram.fromYangCounts(hexagramInfo.yangCounts)!;
+    const hexagramTitle = `${hexagram.palace} ${hexagramInfo.id}`;
+    wrapper.setAttribute('aria-label', hexagramTitle);
+    wrapper.setAttribute('title', `${hexagramTitle} ${rawDigits}`);
     wrapper.classList.toggle('liuyao-card--without-gods', !hasSixGods);
 
-    const header = h('div', 'liuyao-card__title', `${hexagram.palace}宫 ${hexagram.id}`);
+    const header = h('div', 'liuyao-card__title', hexagramTitle);
     wrapper.append(header);
 
     for (const lineInfo of lines) {

@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       liuyao:
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: ^0.2.2
+        version: 0.2.2
       solarlunar:
         specifier: ^3.1.0
         version: 3.1.0
@@ -387,8 +387,8 @@ packages:
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
 
-  liuyao@0.1.1:
-    resolution: {integrity: sha512-e9Y/OSEtDDD0k7M1cvsmS7nPxVh3uuuw6R8fGueclTzRReeXD+DAFfVa+MsEkzRb6AkGf/M0q+8AAN+Ac7vCRw==}
+  liuyao@0.2.2:
+    resolution: {integrity: sha512-5qxClb3K8UqT9cuIEFmVM0KZ0G687O1SQ79R5JbcPgMCXCM3KXzrHKvIu0AQuKdrjdsQY6BU7S/s87cmyFZ40w==}
 
   moment@2.29.4:
     resolution: {integrity: sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==}
@@ -672,7 +672,9 @@ snapshots:
   fsevents@2.3.3:
     optional: true
 
-  liuyao@0.1.1: {}
+  liuyao@0.2.2:
+    dependencies:
+      solarlunar: 3.1.0
 
   moment@2.29.4: {}
 
