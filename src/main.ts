@@ -1,8 +1,6 @@
 import solarLunar, { type SolarLunarResult } from 'solarlunar';
 import { Plugin } from 'obsidian';
-import { getSixGods } from './core/6-gods.js';
-import { Hexagrams, Trigram, type HexagramInfo } from './core/common.js';
-import type { SixGods } from './types/index.js';
+import { HexagramInfo, HexagramInfoTable, SixGod, SixGodTable, TrigramInfoTable } from 'liuyao';
 
 type YaoValue = '0' | '1' | '2' | '3';
 type LineTone = 'default' | 'changing' | 'muted';
@@ -21,14 +19,12 @@ type ParsedLiuyaoBlock = {
   parsedDate?: Date;
   lunarInfo?: SolarLunarResult;
   dateError?: string;
-  sixGods?: SixGods[];
+  sixGods?: SixGod[];
   gzHour?: string;
 };
 
-const HEXAGRAM_BY_BINARY = new Map(Hexagrams.list.map((hexagram) => [hexagram.b, hexagram]));
-const TRIGRAM_TO_DIGIT = new Map(
-  Trigram.list.map((trigram) => [trigram.name, String(trigram.countOfYang) as YaoValue]),
-);
+const HEXAGRAM_BY_BINARY = new Map(HexagramInfoTable.map((hexagram) => [hexagram.binary, hexagram]));
+const TRIGRAM_TO_DIGIT = new Map(TrigramInfoTable.map((t) => [t.id, String(t.yangCount) as YaoValue]));
 
 function h<T extends keyof HTMLElementTagNameMap>(tag: T, cls: string, content?: string): HTMLElementTagNameMap[T] {
   const e = document.createElement(tag);
@@ -112,11 +108,11 @@ export default class LiuyaoRendererPlugin extends Plugin {
   private createCard(rawDigits: string, hexagram: HexagramInfo, lines: DisplayLine[]): HTMLElement {
     const wrapper = h('section', 'liuyao-card');
     const hasSixGods = lines.some((line) => line.sixGod);
-    wrapper.setAttribute('aria-label', `${hexagram.family}宫 ${hexagram.id}`);
-    wrapper.setAttribute('title', `${hexagram.family}宫 ${hexagram.id} ${rawDigits}`);
+    wrapper.setAttribute('aria-label', `${hexagram.palace}宫 ${hexagram.id}`);
+    wrapper.setAttribute('title', `${hexagram.palace}宫 ${hexagram.id} ${rawDigits}`);
     wrapper.classList.toggle('liuyao-card--without-gods', !hasSixGods);
 
-    const header = h('div', 'liuyao-card__title', `${hexagram.family}宫 ${hexagram.id}`);
+    const header = h('div', 'liuyao-card__title', `${hexagram.palace}宫 ${hexagram.id}`);
     wrapper.append(header);
 
     for (const lineInfo of lines) {
@@ -231,7 +227,7 @@ function parseLiuyaoBlock(source: string): ParsedLiuyaoBlock {
 
   result.parsedDate = parsedDate;
   result.lunarInfo = lunarInfo;
-  result.sixGods = getSixGods(lunarInfo.gzDay.charAt(0));
+  result.sixGods = SixGodTable.find((v) => v.heavenlyStem === lunarInfo.gzDay.charAt(0))?.gods;
   return result;
 }
 
@@ -267,19 +263,19 @@ function getHexagram(rawDigits: string): HexagramInfo | undefined {
     .map((digit) => (digit === '1' || digit === '3' ? '1' : '0'))
     .join('');
 
-  return HEXAGRAM_BY_BINARY.get(binary);
+  return HEXAGRAM_BY_BINARY.get(binary as any);
 }
 
-function buildPrimaryYaos(rawDigits: string, hexagram: HexagramInfo, sixGods?: SixGods[]): DisplayLine[] {
+function buildPrimaryYaos(rawDigits: string, hexagram: HexagramInfo, sixGods?: SixGod[]): DisplayLine[] {
   const digits = rawDigits.split('') as YaoValue[];
 
   return digits
     .map<DisplayLine>((digit, index) => {
-      const setup = hexagram.setup[index];
+      const setup = hexagram.setupInfo[index];
       return {
         sixGod: sixGods?.[index] ?? '',
-        description: setup?.desc || '',
-        relation: setup?.type || '',
+        description: setup?.kin || '',
+        relation: setup?.hostGuest || '',
         isYang: digit === '1' || digit === '3',
         tone: digit === '0' || digit === '3' ? 'changing' : 'default',
       };
@@ -293,14 +289,14 @@ function buildChangedYaos(rawDigits: string, changedDigits: string, hexagram: He
 
   return nextDigits
     .map<DisplayLine>((digit, index) => {
-      const setup = hexagram.setup[index];
+      const setup = hexagram.setupInfo[index];
       const originalDigit = originalDigits[index];
       const isChangedLine = originalDigit === '0' || originalDigit === '3';
 
       return {
         sixGod: '',
-        description: setup?.desc || '',
-        relation: setup?.type || '',
+        description: setup?.kin || '',
+        relation: setup?.hostGuest || '',
         isYang: digit === '1' || digit === '3',
         tone: isChangedLine ? 'default' : 'muted',
       };
@@ -327,5 +323,3 @@ function formatGregorianDate(date: Date): string {
 function getShichen(date: Date): string {
   return '子丑丑寅寅卯卯辰辰巳巳午午未未申申酉酉戌戌亥亥子'[date.getHours()] ?? '未知';
 }
-
-// TODO 发布到obsidian

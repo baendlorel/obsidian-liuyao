@@ -99,6 +99,10 @@
   color: #111111;
 }
 
+.liuyao-line:hover {
+  opacity: 0.92;
+}
+
 .theme-dark .liuyao-line[data-tone='default'] {
   color: var(--text-normal);
 }
