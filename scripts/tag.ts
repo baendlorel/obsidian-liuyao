@@ -8,7 +8,7 @@ import { resolve } from 'path';
 const pkgPath = resolve(process.cwd(), 'package.json');
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
 const version = pkg.version;
-const tag = `v${version}`;
+const tag = `${version}`;
 
 console.log(`📦 当前版本: ${version}`);
 console.log(`🏷️  Tag 名称: ${tag}`);
