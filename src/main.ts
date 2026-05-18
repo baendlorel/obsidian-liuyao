@@ -102,6 +102,7 @@ export default class LiuyaoRendererPlugin extends Plugin {
     }
 
     panel.append(wrapper);
+    panel.append(this.createVersionWatermark());
     element.append(panel);
   }
 
@@ -164,6 +165,12 @@ export default class LiuyaoRendererPlugin extends Plugin {
     arrow.append(icon);
 
     return arrow;
+  }
+
+  private createVersionWatermark(): HTMLElement {
+    const version = this.manifest.version;
+    const watermark = h('div', 'liuyao-watermark', `v${version}`);
+    return watermark;
   }
 
   private createSolarLunarCard(rawInput: string, parsedDate: Date, lunarInfo: SolarLunarResult): HTMLElement {
