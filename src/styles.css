@@ -3,6 +3,8 @@
   display: grid;
   gap: 0.55rem;
   margin: 1em 0;
+  container-type: inline-size;
+  container-name: liuyao;
 }
 
 .liuyao-panel .liuyao-block,
@@ -16,7 +18,7 @@
   align-items: center;
   justify-content: flex-start;
   gap: 0.75rem;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   overflow-x: auto;
   padding-inline: 0.25rem;
   padding-bottom: 0.25rem;
@@ -27,8 +29,8 @@
   --liuyao-god-width: 2.35rem;
   --liuyao-left-width: 5rem;
   --liuyao-right-width: 1.4rem;
-  --liuyao-line-width: 6.9rem;
-  --liuyao-line-gap: 1.7rem;
+  --liuyao-line-width: 6rem;
+  --liuyao-line-gap: 1.3rem;
   display: grid;
   gap: 0.4rem;
   width: max-content;
@@ -80,7 +82,7 @@
 }
 
 .liuyao-card__text--left {
-  text-align: right;
+  text-align: center;
 }
 
 .liuyao-card__text--god {
@@ -119,8 +121,8 @@
 
 .liuyao-line__segment {
   width: calc((var(--liuyao-line-width) - var(--liuyao-line-gap)) / 2);
-  height: 0.58rem;
-  border-radius: 1px;
+  height: 0.78rem;
+  border-radius: 4px;
   background: currentColor;
 }
 
@@ -189,7 +191,7 @@
 }
 
 /* Mobile portrait layout */
-@media (max-width: 768px) {
+@container liuyao (max-width: 600px) {
   .liuyao-block {
     flex-direction: column;
     align-items: center;
