@@ -40,12 +40,16 @@ export const svg = <T extends keyof SVGElementTagNameMap>(
 
 const tp = document.createElement('template');
 export const html = (template: TemplateStringsArray, ...args: string[]): HTMLElement => {
+  tp.innerHTML = raw(template, ...args);
+  return tp.firstElementChild as HTMLElement;
+};
+
+export const raw = (template: TemplateStringsArray, ...args: string[]): string => {
   const s: string[] = [];
   for (let i = 0; i < template.length - 1; i++) {
     s.push(template[i], args[i]);
   }
   s.push(template[template.length - 1]);
 
-  tp.innerHTML = s.join('');
-  return tp.firstElementChild as HTMLElement;
+  return s.join('');
 };

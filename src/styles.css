@@ -1,3 +1,7 @@
+.d-none {
+  display: none;
+}
+
 .liuyao-panel {
   position: relative;
   display: grid;
@@ -39,7 +43,7 @@
   flex: 0 0 auto;
 }
 
-.liuyao-card--without-gods {
+.liuyao-card__no-gods {
   --liuyao-god-width: 0;
 }
 
@@ -72,7 +76,7 @@
   gap: 0.35rem;
 }
 
-.liuyao-card--without-gods .liuyao-card__row {
+.liuyao-card__no-gods .liuyao-card__row {
   grid-template-columns: var(--liuyao-left-width) var(--liuyao-line-width) var(--liuyao-right-width);
 }
 
