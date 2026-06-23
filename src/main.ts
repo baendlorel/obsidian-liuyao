@@ -1,6 +1,9 @@
-import solarLunar, { type SolarLunarResult } from 'solarlunar';
+import solarLunar from 'solarlunar';
 import { Plugin } from 'obsidian';
 import { Hexagram, HexagramInfo, HexagramInfoTable, SixGod, SixGodTable, TrigramInfoTable } from 'liuyao';
+import { changeYaos, h, html, svg } from './utils.js';
+import { createSolarlunarCard } from './templates.js';
+import { ParsedLiuyaoBlock } from './types.js';
 
 type YaoValue = '0' | '1' | '2' | '3';
 type LineTone = 'default' | 'changing' | 'muted';
@@ -13,33 +16,8 @@ type DisplayLine = {
   tone: LineTone;
 };
 
-type ParsedLiuyaoBlock = {
-  rawDigits: string | null;
-  dateInput?: string;
-  parsedDate?: Date;
-  lunarInfo?: SolarLunarResult;
-  dateError?: string;
-  sixGods?: SixGod[];
-  gzHour?: string;
-};
-
 const HEXAGRAM_BY_BINARY = new Map(HexagramInfoTable.map((hexagram) => [hexagram.binary, hexagram]));
 const TRIGRAM_TO_DIGIT = new Map(TrigramInfoTable.map((t) => [t.id, String(t.yangCount) as YaoValue]));
-
-function h<T extends keyof HTMLElementTagNameMap>(tag: T, cls: string, content?: string): HTMLElementTagNameMap[T] {
-  const e = document.createElement(tag);
-  e.className = cls;
-  if (content) {
-    e.textContent = content;
-  }
-  return e;
-}
-
-function svg<T extends keyof SVGElementTagNameMap>(tag: T, attr: Record<string, string>): SVGElementTagNameMap[T] {
-  const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
-  Object.entries(attr).forEach(([key, value]) => e.setAttribute(key, value));
-  return e;
-}
 
 export default class LiuyaoRendererPlugin extends Plugin {
   onload(): void {
@@ -47,41 +25,38 @@ export default class LiuyaoRendererPlugin extends Plugin {
   }
 
   private renderLiuyaoBlock(source: string, element: HTMLElement): void {
-    const parsedBlock = parseLiuyaoBlock(source);
-    const rawDigits = parsedBlock.rawDigits;
+    const { lunarInfo, rawDigits, parsedDate, dateError, sixGods } = parseLiuyaoBlock(source);
 
     element.empty();
-    const panel = h('section', 'liuyao-panel');
 
-    if (parsedBlock.lunarInfo && parsedBlock.parsedDate && parsedBlock.dateInput) {
-      panel.append(this.createSolarLunarCard(parsedBlock.dateInput, parsedBlock.parsedDate, parsedBlock.lunarInfo));
-    } else if (parsedBlock.dateError) {
-      panel.append(h('div', 'solarlunar-error', parsedBlock.dateError));
+    const panel = element.appendChild(html`<section class="liuyao-panel"></section>`);
+
+    if (lunarInfo && parsedDate) {
+      panel.append(createSolarlunarCard({ parsedDate, lunarInfo }));
+    } else if (dateError) {
+      panel.append(html`<div class="solarlunar-error">${dateError}</div>`);
     }
 
     if (!rawDigits) {
-      const error = h(
-        'div',
-        'liuyao-error',
-        'Invalid liuyao block. Use 6 digits from 0 to 3 or 6 trigram names, or put a date on the first non-empty line and the hexagram on the second line.',
+      panel.append(
+        html`<div class="liuyao-error">
+          六爻块数据无效. 必须使用 6 个 0~3 的数字、6个“单拆重交”文字、 6 个八卦名。第一行可以写日期（格式为2000-01-01
+          10:20），第二行写六爻表达式也行。
+        </div>`,
       );
-      panel.append(error);
-      element.append(panel);
       return;
     }
 
     const hexagram = getHexagram(rawDigits);
 
     if (!hexagram) {
-      const error = h('div', 'liuyao-error', `Unable to find hexagram data for ${rawDigits}`);
-      panel.append(error);
-      element.append(panel);
+      panel.append(html`<div class="liuyao-error">无法根据 ${rawDigits} 获取卦象信息</div>`);
       return;
     }
 
     const wrapper = h('div', 'liuyao-block');
 
-    const primaryLines = buildPrimaryYaos(rawDigits, hexagram, parsedBlock.sixGods);
+    const primaryLines = buildPrimaryYaos(rawDigits, hexagram, sixGods);
     wrapper.append(this.createCard(rawDigits, hexagram, primaryLines));
 
     const changedDigits = changeYaos(rawDigits);
@@ -172,27 +147,6 @@ export default class LiuyaoRendererPlugin extends Plugin {
     const watermark = h('div', 'liuyao-watermark', `v${version}`);
     return watermark;
   }
-
-  private createSolarLunarCard(rawInput: string, parsedDate: Date, lunarInfo: SolarLunarResult): HTMLElement {
-    const wrapper = h('section', 'solarlunar-card');
-
-    const rows: Array<[string, string]> = [
-      ['原始输入', rawInput],
-      ['公历', `${formatGregorianDate(parsedDate)} ${lunarInfo.ncWeek}`],
-      ['农历', `${lunarInfo.yearCn} ${lunarInfo.monthCn}${lunarInfo.dayCn}${lunarInfo.isLeap ? '（闰月）' : ''}`],
-      ['干支', `${lunarInfo.gzYear}年 ${lunarInfo.gzMonth}月 ${lunarInfo.gzDay}日 ${getShichen(parsedDate)}时`],
-      ['生肖', lunarInfo.animal],
-      ['节气', lunarInfo.isTerm ? lunarInfo.term : '无'],
-    ];
-
-    rows.forEach(([label, value]) => {
-      const row = h('div', 'solarlunar-card__row');
-      row.append(h('span', 'solarlunar-card__label', label), h('span', 'solarlunar-card__value', value));
-      wrapper.append(row);
-    });
-
-    return wrapper;
-  }
 }
 
 function parseLiuyaoBlock(source: string): ParsedLiuyaoBlock {
@@ -219,7 +173,6 @@ function parseLiuyaoBlock(source: string): ParsedLiuyaoBlock {
 
   const parsedDate = new Date(dateInput);
   const result: ParsedLiuyaoBlock = {
-    dateInput,
     rawDigits: parseLiuyaoSource(diagramInput),
   };
 
@@ -267,6 +220,7 @@ function parseTrigramSequence(value: string): string | null {
 }
 
 function getHexagram(rawDigits: string): HexagramInfo | undefined {
+  // TODO 加入单拆重交创建六爻块的方式
   const binary = rawDigits
     .split('')
     .map((digit) => (digit === '1' || digit === '3' ? '1' : '0'))
@@ -311,24 +265,4 @@ function buildChangedYaos(rawDigits: string, changedDigits: string, hexagram: He
       };
     })
     .reverse();
-}
-
-function changeYaos(rawDigits: string): string {
-  return rawDigits
-    .split('')
-    .map((digit) => '1122'[digit as any])
-    .join('');
-}
-
-function formatGregorianDate(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  const h = String(date.getHours()).padStart(2, '0');
-  const min = String(date.getMinutes()).padStart(2, '0');
-  return `${y}-${m}-${d} ${h}:${min}`;
-}
-
-function getShichen(date: Date): string {
-  return '子丑丑寅寅卯卯辰辰巳巳午午未未申申酉酉戌戌亥亥子'[date.getHours()] ?? '未知';
 }
