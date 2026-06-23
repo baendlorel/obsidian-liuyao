@@ -1,20 +1,11 @@
 import solarLunar from 'solarlunar';
 import { Plugin } from 'obsidian';
-import { Hexagram, HexagramInfo, HexagramInfoTable, SixGod, SixGodTable, TrigramInfoTable } from 'liuyao';
-import { changeYaos, h, html, svg } from './utils.js';
-import { createSolarlunarCard } from './templates.js';
-import { ParsedLiuyaoBlock } from './types.js';
+import { HexagramInfo, HexagramInfoTable, SixGod, SixGodTable, TrigramInfoTable } from 'liuyao';
+import { changeYaos, h, html } from './utils.js';
+import { createSolarlunarCard, createLiuyaoCard, createLiuyaoArrow, createVersionWatermark } from './templates.js';
+import type { DisplayLine, ParsedLiuyaoBlock } from './types.js';
 
 type YaoValue = '0' | '1' | '2' | '3';
-type LineTone = 'default' | 'changing' | 'muted';
-
-type DisplayLine = {
-  sixGod: string;
-  description: string;
-  relation: string;
-  isYang: boolean;
-  tone: LineTone;
-};
 
 const HEXAGRAM_BY_BINARY = new Map(HexagramInfoTable.map((hexagram) => [hexagram.binary, hexagram]));
 const TRIGRAM_TO_DIGIT = new Map(TrigramInfoTable.map((t) => [t.id, String(t.yangCount) as YaoValue]));
@@ -50,102 +41,36 @@ export default class LiuyaoRendererPlugin extends Plugin {
     const hexagram = getHexagram(rawDigits);
 
     if (!hexagram) {
-      panel.append(html`<div class="liuyao-error">无法根据 ${rawDigits} 获取卦象信息</div>`);
+      panel.append(html`<div class="liuyao-error">无法获取卦象信息：${rawDigits}</div>`);
       return;
     }
 
     const wrapper = h('div', 'liuyao-block');
 
     const primaryLines = buildPrimaryYaos(rawDigits, hexagram, sixGods);
-    wrapper.append(this.createCard(rawDigits, hexagram, primaryLines));
+    wrapper.append(createLiuyaoCard({ hexagramInfo: hexagram, lines: primaryLines }));
 
     const changedDigits = changeYaos(rawDigits);
     if (changedDigits !== rawDigits) {
       const changedHexagram = getHexagram(changedDigits);
 
       if (!changedHexagram) {
-        const error = h('div', 'liuyao-error', `Unable to find changed hexagram data for ${changedDigits}`);
-        panel.append(error);
-        element.append(panel);
+        panel.append(html`<div class="liuyao-error">无法找到变卦数据：${changedDigits}</div>`);
         return;
       }
 
-      wrapper.append(this.createArrow());
+      wrapper.append(createLiuyaoArrow());
       wrapper.append(
-        this.createCard(changedDigits, changedHexagram, buildChangedYaos(rawDigits, changedDigits, changedHexagram)),
+        createLiuyaoCard({
+          hexagramInfo: changedHexagram,
+          lines: buildChangedYaos(rawDigits, changedDigits, changedHexagram),
+        }),
       );
     }
 
     panel.append(wrapper);
-    panel.append(this.createVersionWatermark());
+    panel.append(createVersionWatermark({ version: this.manifest.version }));
     element.append(panel);
-  }
-
-  private createCard(rawDigits: string, hexagramInfo: HexagramInfo, lines: DisplayLine[]): HTMLElement {
-    const wrapper = h('section', 'liuyao-card');
-    const hasSixGods = lines.some((line) => line.sixGod);
-    const hexagram = Hexagram.fromYangCounts(hexagramInfo.yangCounts)!;
-    const hexagramTitle = `${hexagram.palace} ${hexagramInfo.id}`;
-    wrapper.setAttribute('aria-label', hexagramTitle);
-    wrapper.setAttribute('title', `${hexagramTitle} ${rawDigits}`);
-    wrapper.classList.toggle('liuyao-card--without-gods', !hasSixGods);
-
-    const header = h('div', 'liuyao-card__title', hexagramTitle);
-    wrapper.append(header);
-
-    for (const lineInfo of lines) {
-      const row = h('div', 'liuyao-card__row');
-      const left = h('span', 'liuyao-card__text liuyao-card__text--left', lineInfo.description);
-      const middle = h('div', 'liuyao-line');
-
-      middle.dataset.kind = lineInfo.isYang ? 'yang' : 'yin';
-      middle.dataset.tone = lineInfo.tone;
-      middle.setAttribute('aria-hidden', 'true');
-
-      middle.append(h('span', 'liuyao-line__segment'));
-      if (!lineInfo.isYang) {
-        middle.append(h('span', 'liuyao-line__gap'));
-        middle.append(h('span', 'liuyao-line__segment'));
-      }
-
-      const right = h('span', 'liuyao-card__text liuyao-card__text--right', lineInfo.relation ?? '');
-
-      if (hasSixGods) {
-        row.append(h('span', 'liuyao-card__text liuyao-card__text--god', lineInfo.sixGod));
-      }
-
-      row.append(left, middle, right);
-      wrapper.append(row);
-    }
-
-    return wrapper;
-  }
-
-  private createArrow(): HTMLElement {
-    const arrow = h('div', 'liuyao-arrow');
-    arrow.setAttribute('aria-hidden', 'true');
-
-    const icon = svg('svg', {
-      class: 'liuyao-arrow__icon',
-      viewBox: '0 0 20 20',
-      width: '20',
-      height: '20',
-      fill: 'none',
-      stroke: 'currentColor',
-      'stroke-width': '1.8',
-      'stroke-linecap': 'round',
-      'stroke-linejoin': 'round',
-    });
-    icon.append(svg('path', { d: 'M4 10h12' }), svg('path', { d: 'm11 5 5 5-5 5' }));
-    arrow.append(icon);
-
-    return arrow;
-  }
-
-  private createVersionWatermark(): HTMLElement {
-    const version = this.manifest.version;
-    const watermark = h('div', 'liuyao-watermark', `v${version}`);
-    return watermark;
   }
 }
 

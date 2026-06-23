@@ -26,7 +26,6 @@ export interface DisplayLine {
 }
 
 export interface LiuyaoCardData {
-  rawDigits: string;
   hexagramInfo: HexagramInfo;
   lines: DisplayLine[];
 }
