@@ -1,6 +1,6 @@
 import solarLunar from 'solarlunar';
 import { Plugin } from 'obsidian';
-import { HexagramInfo, HexagramInfoTable, SixGod, SixGodTable, TrigramInfoTable } from 'liuyao';
+import { Hexagram, HexagramInfo, HexagramInfoTable, SixGod, SixGodTable, TrigramInfoTable } from 'liuyao';
 import { changeYaos, h, html } from './utils.js';
 import { createSolarlunarCard, createLiuyaoCard, createLiuyaoArrow, createVersionWatermark } from './templates.js';
 import type { DisplayLine, ParsedLiuyaoBlock } from './types.js';
@@ -156,6 +156,8 @@ function getHexagram(rawDigits: string): HexagramInfo | undefined {
 
 function buildPrimaryYaos(rawDigits: string, hexagram: HexagramInfo, sixGods?: SixGod[]): DisplayLine[] {
   const digits = rawDigits.split('') as YaoValue[];
+
+  // TODO 这里要利用工厂来创建 Hexagram.fromYangCounts
 
   return digits
     .map<DisplayLine>((digit, index) => {
