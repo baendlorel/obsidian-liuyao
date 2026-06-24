@@ -47,11 +47,13 @@ export const getShichen = (date: Date): string =>
 
 // # Element creation
 
-export const h = (
-  tag: keyof HTMLElementTagNameMap,
+type Child = Node | string;
+
+export const h = <K extends keyof HTMLElementTagNameMap>(
+  tag: K,
   className: string,
-  children?: (HTMLElement | string)[] | string,
-) => {
+  children?: Child[] | string,
+): HTMLElementTagNameMap[K] => {
   const e = document.createElement(tag);
   e.className = className;
   if (Array.isArray(children)) {
@@ -62,8 +64,8 @@ export const h = (
   return e;
 };
 
-export const div = (className: string, children?: HTMLElement[] | string) => h('div', className, children);
-export const span = (className: string, children?: HTMLElement[] | string) => h('span', className, children);
+export const div = (className: string, children?: Child[] | string) => h('div', className, children);
+export const span = (className: string, children?: Child[] | string) => h('span', className, children);
 export const ol = (list: string[]) =>
   h(
     'ol',
