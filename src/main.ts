@@ -1,7 +1,7 @@
 import { Plugin } from 'obsidian';
 
 import { html } from './utils.js';
-import { solarlunarCard, liuyaoCard, liuyaoArrow, versionWatermark } from './templates.js';
+import { solarlunarCard, liuyaoCard, liuyaoArrow } from './templates.js';
 import { build, buildChanged, parse } from './parser.js';
 
 function renderLiuyaoBlock(source: string, element: HTMLElement): void {
@@ -51,7 +51,7 @@ function renderLiuyaoBlock(source: string, element: HTMLElement): void {
     }
   }
 
-  panel.append(wrapper, versionWatermark({ version: '__VERSION__' }));
+  panel.append(wrapper, html`<div class="liuyao-watermark">v__VERSION__</div>`);
 }
 
 export default class LiuyaoRendererPlugin extends Plugin {

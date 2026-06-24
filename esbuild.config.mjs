@@ -2,7 +2,7 @@
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import esbuild from 'esbuild';
-import pkg from './package.json';
+import pkg from './package.json' with { type: 'json' };
 
 const watch = process.argv.includes('--watch');
 const outdir = 'dist';

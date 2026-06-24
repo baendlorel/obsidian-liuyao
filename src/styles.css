@@ -116,7 +116,8 @@
 }
 
 .liuyao-line[data-tone='changing'] {
-  color: #c62828;
+  /* color: #c62828; */
+  color: #0063cc;
 }
 
 .liuyao-line[data-tone='muted'] {

@@ -82,10 +82,3 @@ export const liuyaoArrow = () =>
         <path d="m11 5 5 5-5 5"></path>
       </svg>
     </div>`;
-
-/**
- * 创建版本水印的模板
- */
-export const versionWatermark = ({ version }: VersionWatermarkData) => html`
-  <div class="liuyao-watermark">v${version}</div>
-`;
