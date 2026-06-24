@@ -1,6 +1,8 @@
-import { cp, mkdir, rm } from 'node:fs/promises';
+// @ts-check
+import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import esbuild from 'esbuild';
+import pkg from './package.json';
 
 const watch = process.argv.includes('--watch');
 const outdir = 'dist';
@@ -9,23 +11,30 @@ const staticFiles = [
   { from: 'src/styles.css', to: 'styles.css' },
 ];
 
-async function prepareDist() {
-  if (!watch) {
-    await rm(outdir, { recursive: true, force: true });
-  }
-
-  await mkdir(outdir, { recursive: true });
-
-  await Promise.all(
-    staticFiles.map(async ({ from, to }) => {
-      const destination = join(outdir, to);
-      await mkdir(dirname(destination), { recursive: true });
-      await cp(from, destination);
-    }),
-  );
+/**
+ * @param {Record<string,any>} replacement
+ */
+function replace(replacement) {
+  let content = readFileSync('dist/main.js', 'utf-8');
+  Object.entries(replacement).forEach(([k, v]) => (content = content.replace(k, v)));
+  writeFileSync('dist/main.js', content);
 }
 
-await prepareDist();
+function prepareDist() {
+  if (!watch) {
+    rmSync(outdir, { recursive: true, force: true });
+  }
+
+  mkdirSync(outdir, { recursive: true });
+
+  staticFiles.map(({ from, to }) => {
+    const destination = join(outdir, to);
+    mkdirSync(dirname(destination), { recursive: true });
+    cpSync(from, destination);
+  });
+}
+
+prepareDist();
 
 const ctx = await esbuild.context({
   entryPoints: ['src/main.ts'],
@@ -45,4 +54,7 @@ if (watch) {
 } else {
   await ctx.rebuild();
   await ctx.dispose();
+  replace({
+    __VERSION__: pkg.version,
+  });
 }
