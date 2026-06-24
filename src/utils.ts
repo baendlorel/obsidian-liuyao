@@ -45,24 +45,28 @@ export const dtm = (date: Date): string => {
 export const getShichen = (date: Date): string =>
   '子丑丑寅寅卯卯辰辰巳巳午午未未申申酉酉戌戌亥亥子'[date.getHours()] ?? '未知';
 
-const tp = document.createElement('div');
-/**
- * Returns the first html element
- */
-export const html = (template: TemplateStringsArray, ...args: string[]): HTMLElement => {
-  tp.innerHTML = raw(template, ...args);
-  return tp.find('div,section,svg');
-};
+// # Element creation
 
-/**
- * Only returns string
- */
-export const raw = (template: TemplateStringsArray, ...args: string[]): string => {
-  const s: string[] = [];
-  for (let i = 0; i < template.length - 1; i++) {
-    s.push(template[i], args[i]);
+export const h = (
+  tag: keyof HTMLElementTagNameMap,
+  className: string,
+  children?: (HTMLElement | string)[] | string,
+) => {
+  const e = document.createElement(tag);
+  e.className = className;
+  if (Array.isArray(children)) {
+    e.append.apply(e, children);
+  } else if (typeof children === 'string') {
+    e.append(children);
   }
-  s.push(template[template.length - 1]);
-
-  return s.join('');
+  return e;
 };
+
+export const div = (className: string, children?: HTMLElement[] | string) => h('div', className, children);
+export const span = (className: string, children?: HTMLElement[] | string) => h('span', className, children);
+export const ol = (list: string[]) =>
+  h(
+    'ol',
+    '',
+    list.map((v) => h('li', '', v)),
+  );

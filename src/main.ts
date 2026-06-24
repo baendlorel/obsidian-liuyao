@@ -18,7 +18,7 @@ function renderLiuyaoBlock(source: string, element: HTMLElement): void {
 
   element.empty();
 
-  const panel = element.appendChild(html`<section class="liuyao-panel"></section>`);
+  const panel = element.appendChild(html`<div class="liuyao-panel"></div>`);
 
   if (hexagram === 'invalid' && date === 'invalid') {
     // TEST 这里可以测试很大的日期，会触发羡慕的阴历字典不足异常
@@ -110,12 +110,11 @@ class LiuyaoSettingTab extends PluginSettingTab {
   }
 
   display(): void {
-    const { containerEl } = this;
+    this.containerEl.empty();
 
-    containerEl.empty();
-    containerEl.createEl('h2', { text: '六爻渲染设置' });
+    new Setting(this.containerEl).setName('六爻渲染设置').setHeading();
 
-    new Setting(containerEl)
+    new Setting(this.containerEl)
       .setName('变爻颜色')
       .setDesc('用于标记老阴、老阳变爻的颜色。')
       .addColorPicker((colorPicker) =>

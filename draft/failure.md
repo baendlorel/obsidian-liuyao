@@ -1,0 +1,30 @@
+## Source code
+
+- **Error**: For a consistent UI use `new Setting(containerEl).setName(...).setHeading()` instead of creating HTML heading elements directly.
+  - src/main.ts:116
+- **Error**: Unsafe assignment to innerHTML
+  - src/utils.ts:53
+- **Warning**: Unsafe assignment of an `error` or `any` typed value
+  - @typescript-eslint/no-unsafe-assignment
+  - src/main.ts:17, src/main.ts:47, src/parser.ts:28, src/parser.ts:35, src/utils.ts:13
+- **Warning**: Use 'activeDocument' instead of 'document' for popout window compatibility.
+  - src/main.ts:78, src/main.ts:95, src/utils.ts:48
+- **Warning**: Unsafe call of an `error` or `any` typed value
+  - @typescript-eslint/no-unsafe-call
+  - src/parser.ts:38, src/utils.ts:13
+- **Warning**: Unsafe member access on an `error` or `any` typed value
+  - @typescript-eslint/no-unsafe-member-access
+  - src/parser.ts:38, src/templates.ts:8, src/templates.ts:13, src/templates.ts:13, src/templates.ts:13, src/templates.ts:13, src/templates.ts:19, src/templates.ts:19, src/templates.ts:19, src/templates.ts:24, src/templates.ts:28, src/templates.ts:28, src/utils.ts:13
+- **Warning**: Passes unsafe values into typed parameters
+  - @typescript-eslint/no-unsafe-argument
+  - src/templates.ts:8, src/templates.ts:13, src/templates.ts:13, src/templates.ts:13, src/templates.ts:19, src/templates.ts:19, src/templates.ts:19, src/templates.ts:24, src/templates.ts:28
+- **Warning**: 'error' type that acts as 'any' and overrides all other types in this union type
+  - src/types.ts
+  - src/utils.ts
+  - src/types.ts:10, src/utils.ts:9
+- **Warning**: Do not write to DOM directly using innerHTML/outerHTML property
+  - src/utils.ts:53
+- **Recommendation**: 'VersionWatermarkData' is defined but never used.
+  - src/templates.ts:1
+- **Recommendation**: 'HexagramInfo' is defined but never used.
+  - src/types.ts:1

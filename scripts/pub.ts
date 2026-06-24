@@ -4,10 +4,10 @@ import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-type VersionedJson = {
+interface VersionedJson {
   version: string;
   [key: string]: unknown;
-};
+}
 
 function readJson(filePath: string): VersionedJson {
   return JSON.parse(readFileSync(filePath, 'utf-8')) as VersionedJson;

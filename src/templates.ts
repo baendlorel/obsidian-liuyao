@@ -1,33 +1,34 @@
 import type { DisplayLine, LiuyaoCardData, SolarlunarCardData, VersionWatermarkData } from './types.js';
-import { dtm, getShichen, html, raw } from './utils.js';
+import { dtm, getShichen, h, div, span } from './utils.js';
 
-export const solarlunarCard = ({ date, lunar }: SolarlunarCardData) =>
-  html`<section class="solarlunar-card">
-    <div class="solarlunar-card__row">
-      <span class="solarlunar-card__label">公历</span>
-      <span class="solarlunar-card__value">${dtm(date)} ${lunar.ncWeek}</span>
-    </div>
-    <div class="solarlunar-card__row">
-      <span class="solarlunar-card__label">农历</span>
-      <span class="solarlunar-card__value">
-        ${lunar.yearCn} ${lunar.monthCn}${lunar.dayCn}${lunar.isLeap ? '（闰月）' : ''}
-      </span>
-    </div>
-    <div class="solarlunar-card__row">
-      <span class="solarlunar-card__label">干支</span>
-      <span class="solarlunar-card__value">
-        ${lunar.gzYear}年 ${lunar.gzMonth}月 ${lunar.gzDay}日 ${getShichen(date)}时
-      </span>
-    </div>
-    <div class="solarlunar-card__row">
-      <span class="solarlunar-card__label">生肖</span>
-      <span class="solarlunar-card__value">${lunar.animal}</span>
-    </div>
-    <div class="solarlunar-card__row">
-      <span class="solarlunar-card__label">节气</span>
-      <span class="solarlunar-card__value">${lunar.isTerm ? lunar.term : '无'}</span>
-    </div>
-  </section>`;
+// FIXME obsidian不允许用innerHTML的方式
+export const solarlunarCard = ({ date, lunar }: SolarlunarCardData) => div('solarlunar-card', []);
+html`<div class="solarlunar-card">
+  <div class="solarlunar-card__row">
+    <span class="solarlunar-card__label">公历</span>
+    <span class="solarlunar-card__value">${dtm(date)} ${lunar.ncWeek}</span>
+  </div>
+  <div class="solarlunar-card__row">
+    <span class="solarlunar-card__label">农历</span>
+    <span class="solarlunar-card__value">
+      ${lunar.yearCn} ${lunar.monthCn}${lunar.dayCn}${lunar.isLeap ? '（闰月）' : ''}
+    </span>
+  </div>
+  <div class="solarlunar-card__row">
+    <span class="solarlunar-card__label">干支</span>
+    <span class="solarlunar-card__value">
+      ${lunar.gzYear}年 ${lunar.gzMonth}月 ${lunar.gzDay}日 ${getShichen(date)}时
+    </span>
+  </div>
+  <div class="solarlunar-card__row">
+    <span class="solarlunar-card__label">生肖</span>
+    <span class="solarlunar-card__value">${lunar.animal}</span>
+  </div>
+  <div class="solarlunar-card__row">
+    <span class="solarlunar-card__label">节气</span>
+    <span class="solarlunar-card__value">${lunar.isTerm ? lunar.term : '无'}</span>
+  </div>
+</div>`;
 
 /**
  * 创建单个爻行的模板
@@ -53,10 +54,10 @@ export const liuyaoCard = ({ hexagram, lines }: LiuyaoCardData) => {
   // 第一个有六神就是都有六神
   const noGodsClass = !lines[0].sixGod ? 'liuyao-card__no-gods' : '';
 
-  return html` <section class="liuyao-card ${noGodsClass}" title="${hexagramTitle}">
+  return html` <div class="liuyao-card ${noGodsClass}" title="${hexagramTitle}">
     <div class="liuyao-card__title">${hexagramTitle}</div>
     ${lines.map((lineInfo) => yaoRaw(lineInfo)).join('')}
-  </section>`;
+  </div>`;
 };
 
 /**
