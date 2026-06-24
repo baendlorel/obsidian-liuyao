@@ -43,16 +43,9 @@ export default class LiuyaoRendererPlugin extends Plugin {
       return;
     }
 
-    const hexagram = getHexagram(rawDigits);
-
-    if (!hexagram) {
-      panel.append(html`<div class="liuyao-error">无法获取卦象信息：${rawDigits}</div>`);
-      return;
-    }
-
     const wrapper = h('div', 'liuyao-block');
 
-    const primaryLines = buildPrimaryYaos(rawDigits, hexagram, sixGods);
+    const primaryLines = build(rawDigits, hexagram, sixGods);
     wrapper.append(createLiuyaoCard({ hexagramInfo: hexagram, lines: primaryLines }));
 
     const changedDigits = changeYaos(rawDigits);
@@ -79,7 +72,7 @@ export default class LiuyaoRendererPlugin extends Plugin {
   }
 }
 
-function parseLiuyaoBlock(source: string): ParsedLiuyaoBlock {
+const parseLiuyaoBlock = (source: string): ParsedLiuyaoBlock => {
   const result: ParsedLiuyaoBlock = {};
 
   const lines = source
@@ -89,7 +82,7 @@ function parseLiuyaoBlock(source: string): ParsedLiuyaoBlock {
 
   if (lines.length === 0) {
     result.gram = 'invalid';
-    return result; // ! 这将会触发“无效的六幺数据”报错
+    return result;
   }
 
   // 只有一行，可能是时辰可能是卦象
@@ -114,44 +107,35 @@ function parseLiuyaoBlock(source: string): ParsedLiuyaoBlock {
     )?.gods;
   }
   return result;
-}
+};
 
-function buildPrimaryYaos(rawDigits: string, hexagram: HexagramInfo, sixGods?: SixGod[]): DisplayLine[] {
-  const digits = rawDigits.split('') as YaoValue[];
-
-  // TODO 这里要利用工厂来创建 Hexagram.fromYangCounts
-
-  return digits
-    .map<DisplayLine>((digit, index) => {
-      const setup = hexagram.setupInfo[index];
-      return {
-        sixGod: sixGods?.[index] ?? '',
-        description: setup?.kin || '',
-        relation: setup?.hostGuest || '',
-        isYang: digit === '1' || digit === '3',
-        tone: digit === '0' || digit === '3' ? 'changing' : 'default',
-      };
-    })
+const build = (hexagram: Hexagram, sixGods?: SixGod[]): DisplayLine[] =>
+  hexagram.yaos
+    .map<DisplayLine>((yao, index) => ({
+      sixGod: sixGods?.[index] ?? '',
+      description: hexagram.info.setupInfo[index]?.kin ?? '',
+      relation: hexagram.info.setupInfo[index]?.hostGuest ?? '',
+      isYang: yao.polar === 1,
+      tone: yao.isDynamic ? 'changing' : 'default',
+    }))
     .reverse();
-}
 
-function buildChangedYaos(rawDigits: string, changedDigits: string, hexagram: HexagramInfo): DisplayLine[] {
-  const originalDigits = rawDigits.split('') as YaoValue[];
-  const nextDigits = changedDigits.split('') as YaoValue[];
+const buildChanged = (hexagram: Hexagram): DisplayLine[] | null => {
+  const changed = hexagram.toChanged();
+  if (!changed) {
+    return null;
+  }
 
-  return nextDigits
-    .map<DisplayLine>((digit, index) => {
-      const setup = hexagram.setupInfo[index];
-      const originalDigit = originalDigits[index];
-      const isChangedLine = originalDigit === '0' || originalDigit === '3';
-
+  return changed.yaos
+    .map<DisplayLine>((yao, index) => {
+      const setup = hexagram.info.setupInfo[index];
       return {
         sixGod: '',
         description: setup?.kin || '',
         relation: setup?.hostGuest || '',
-        isYang: digit === '1' || digit === '3',
-        tone: isChangedLine ? 'default' : 'muted',
+        isYang: yao.polar === 1,
+        tone: yao.isChanged ? 'default' : 'muted',
       };
     })
     .reverse();
-}
+};
