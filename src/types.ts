@@ -12,8 +12,8 @@ export interface ParsedLiuyaoBlock {
 }
 
 export interface SolarlunarCardData {
-  parsedDate: Date;
-  lunarInfo: SolarLunarResult;
+  date: Date;
+  lunar: SolarLunarResult;
 }
 
 export type LineTone = 'default' | 'changing' | 'muted';

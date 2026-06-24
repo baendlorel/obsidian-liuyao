@@ -45,28 +45,6 @@ export const dtm = (date: Date): string => {
 export const getShichen = (date: Date): string =>
   '子丑丑寅寅卯卯辰辰巳巳午午未未申申酉酉戌戌亥亥子'[date.getHours()] ?? '未知';
 
-export const h = <T extends keyof HTMLElementTagNameMap>(
-  tag: T,
-  cls: string,
-  content?: string,
-): HTMLElementTagNameMap[T] => {
-  const e = document.createElement(tag);
-  e.className = cls;
-  if (content) {
-    e.textContent = content;
-  }
-  return e;
-};
-
-export const svg = <T extends keyof SVGElementTagNameMap>(
-  tag: T,
-  attr: Record<string, string>,
-): SVGElementTagNameMap[T] => {
-  const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
-  Object.entries(attr).forEach(([key, value]) => e.setAttribute(key, value));
-  return e;
-};
-
 const tp = document.createElement('template');
 /**
  * Returns the first html element
