@@ -1,4 +1,5 @@
-import solarLunar from 'solarlunar';
+import { Hexagram } from 'liuyao';
+import solarLunar, { SolarLunarResult } from 'solarlunar';
 
 export const changeYaos = (rawDigits: string): string =>
   rawDigits
@@ -6,9 +7,36 @@ export const changeYaos = (rawDigits: string): string =>
     .map((digit) => '1122'[digit as any])
     .join('');
 
-export const getLunarInfo = (date: Date) => {
+export const createDate = (s: string): Date | 'invalid' => {
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? 'invalid' : d;
+};
+
+export const createLunarInfo = (date: Date | 'invalid'): SolarLunarResult | 'invalid' => {
+  if (date === 'invalid') {
+    return 'invalid';
+  }
   const v = solarLunar.solar2lunar(date.getFullYear(), date.getMonth() + 1, date.getDate());
   return v === -1 ? 'invalid' : v;
+};
+
+export const createHexagram = (s: string): Hexagram | 'invalid' => {
+  const map: Record<string, number> = {
+    乾: 3,
+    坤: 0,
+    坎: 1,
+    离: 2,
+    震: 1,
+    兑: 2,
+    艮: 1,
+    巽: 2,
+  };
+  return (
+    Hexagram.fromQuaternary(s) ??
+    Hexagram.fromSymbolName(s) ??
+    Hexagram.fromYangCounts(s.split('').map((c) => map[c] ?? 4)) ??
+    'invalid'
+  );
 };
 
 export const dtm = (date: Date): string => {

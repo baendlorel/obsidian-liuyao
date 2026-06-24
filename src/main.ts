@@ -1,7 +1,7 @@
-import solarLunar from 'solarlunar';
+import solarLunar, { SolarLunarResult } from 'solarlunar';
 import { Plugin } from 'obsidian';
 import { Hexagram, HexagramInfo, HexagramInfoTable, SixGod, SixGodTable, TrigramInfoTable } from 'liuyao';
-import { changeYaos, getLunarInfo, h, html } from './utils.js';
+import { changeYaos, createDate, createHexagram, createLunarInfo, h, html } from './utils.js';
 import { createSolarlunarCard, createLiuyaoCard, createLiuyaoArrow, createVersionWatermark } from './templates.js';
 import type { DisplayLine, ParsedLiuyaoBlock } from './types.js';
 
@@ -16,7 +16,7 @@ export default class LiuyaoRendererPlugin extends Plugin {
   }
 
   private renderLiuyaoBlock(source: string, element: HTMLElement): void {
-    const { lunarInfo, rawDigits, parsedDate, dateError, sixGods } = parseLiuyaoBlock(source);
+    const { lunarInfo, gram: rawDigits, parsedDate, dateError, sixGods } = parseLiuyaoBlock(source);
 
     element.empty();
 
@@ -84,38 +84,39 @@ export default class LiuyaoRendererPlugin extends Plugin {
 }
 
 function parseLiuyaoBlock(source: string): ParsedLiuyaoBlock {
+  const result: ParsedLiuyaoBlock = {};
+
   const lines = source
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter((line) => line.length > 0);
 
   if (lines.length === 0) {
-    return { rawDigits: 'invalid' }; // ! 这将会触发“无效的六幺数据”报错
+    result.gram = 'invalid';
+    return result; // ! 这将会触发“无效的六幺数据”报错
   }
 
   // 只有一行，可能是时辰可能是卦象
   if (lines.length === 1) {
-    const onlyLine = lines[0];
-    const maybeDate = new Date(lines[0]);
-    if (isNaN(maybeDate.getTime())) {
-      return { rawDigits: onlyLine };
-    } else {
-      return { parsedDate: maybeDate, lunarInfo: getLunarInfo(maybeDate) };
+    result.gram = createHexagram(lines[0]);
+    if (result.gram !== 'invalid') {
+      return result;
     }
+
+    result.parsedDate = createDate(lines[0]);
+    result.lunarInfo = createLunarInfo(result.parsedDate);
+    return result;
   }
 
   // 两行，必须第一行时辰第二行卦象
-  const parsedDate = new Date(lines[0]);
-  if (isNaN(parsedDate.getTime()) || !lines[1]) {
-    return { rawDigits: 'invalid' };
+  result.gram = createHexagram(lines[1]);
+  result.parsedDate = createDate(lines[0]);
+  result.lunarInfo = createLunarInfo(result.parsedDate);
+  if (result.lunarInfo !== 'invalid') {
+    result.sixGods = SixGodTable.find(
+      (v) => v.heavenlyStem === (result.lunarInfo as SolarLunarResult).gzDay.charAt(0),
+    )?.gods;
   }
-
-  // result.sixGods = SixGodTable.find((v) => v.heavenlyStem === lunarInfo.gzDay.charAt(0))?.gods;
-  const result: ParsedLiuyaoBlock = {
-    rawDigits: lines[1],
-    parsedDate: parsedDate,
-    lunarInfo: getLunarInfo(parsedDate),
-  };
   return result;
 }
 
