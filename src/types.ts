@@ -1,13 +1,13 @@
 import type { SixGod, HexagramInfo } from 'liuyao';
 import type { SolarLunarResult } from 'solarlunar';
 
+/**
+ * 这些字段原则是可以没有但会是invalid的
+ */
 export interface ParsedLiuyaoBlock {
-  rawDigits: string | null;
-  parsedDate?: Date;
-  lunarInfo?: SolarLunarResult;
-  dateError?: string;
-  sixGods?: SixGod[];
-  gzHour?: string;
+  rawDigits?: string;
+  parsedDate?: Date | 'invalid';
+  lunarInfo?: SolarLunarResult | 'invalid';
 }
 
 export interface SolarlunarCardData {

@@ -1,7 +1,7 @@
 import solarLunar from 'solarlunar';
 import { Plugin } from 'obsidian';
 import { Hexagram, HexagramInfo, HexagramInfoTable, SixGod, SixGodTable, TrigramInfoTable } from 'liuyao';
-import { changeYaos, h, html } from './utils.js';
+import { changeYaos, getLunarInfo, h, html } from './utils.js';
 import { createSolarlunarCard, createLiuyaoCard, createLiuyaoArrow, createVersionWatermark } from './templates.js';
 import type { DisplayLine, ParsedLiuyaoBlock } from './types.js';
 
@@ -28,21 +28,20 @@ export default class LiuyaoRendererPlugin extends Plugin {
       panel.append(html`<div class="solarlunar-error">${dateError}</div>`);
     }
 
-    if (!rawDigits) {
+    if (rawDigits === 'invalid') {
       panel.append(
         html`<div class="liuyao-error">
-          六爻块数据无效！必须的格式如下
-          <div>
-            <h6>可以写的内容：</h6>
-            <div>可以只写1行卦象</div>
-            <div>也可以第1行写日期（格式为2000-01-01 10:20），第2行写六爻表达式也行。</div>
-            <h6>六爻表达式的格式：</h6>
-            <ol>
-              <li>数字0~3，例：211212（水风井）</li>
-              <li>单拆重交，例：拆单单拆单拆（水风井）</li>
-              <li>八卦名，例：坤坤坎艮坎坤（等价于001110，泽山咸->乾为天）</li>
-            </ol>
-          </div>
+          <h6>六爻块数据无效！格式如下：</h6>
+          <ol>
+            <li>第1行写六爻表达式</li>
+            <li>或者第1行写日期（格式为2000-01-01 10:20），第2行写六爻表达式</li>
+          </ol>
+          <h6>六爻表达式的格式：</h6>
+          <ol>
+            <li>数字0~3，例：211212（水风井）</li>
+            <li>单拆重交，例：拆单单拆单拆（水风井）</li>
+            <li>八卦名，例：坤坤坎艮坎坤（等价于001110，泽山咸->乾为天）</li>
+          </ol>
         </div>`,
       );
       return;
@@ -91,67 +90,33 @@ function parseLiuyaoBlock(source: string): ParsedLiuyaoBlock {
     .filter((line) => line.length > 0);
 
   if (lines.length === 0) {
-    return { rawDigits: null };
+    return { rawDigits: 'invalid' }; // ! 这将会触发“无效的六幺数据”报错
   }
 
+  // 只有一行，可能是时辰可能是卦象
   if (lines.length === 1) {
     const onlyLine = lines[0];
-    return { rawDigits: onlyLine ? parseLiuyaoSource(onlyLine) : null };
+    const maybeDate = new Date(lines[0]);
+    if (isNaN(maybeDate.getTime())) {
+      return { rawDigits: onlyLine };
+    } else {
+      return { parsedDate: maybeDate, lunarInfo: getLunarInfo(maybeDate) };
+    }
   }
 
-  const dateInput = lines[0];
-  const diagramInput = lines[1];
-
-  if (!dateInput || !diagramInput) {
-    return { rawDigits: null };
+  // 两行，必须第一行时辰第二行卦象
+  const parsedDate = new Date(lines[0]);
+  if (isNaN(parsedDate.getTime()) || !lines[1]) {
+    return { rawDigits: 'invalid' };
   }
 
-  const parsedDate = new Date(dateInput);
+  // result.sixGods = SixGodTable.find((v) => v.heavenlyStem === lunarInfo.gzDay.charAt(0))?.gods;
   const result: ParsedLiuyaoBlock = {
-    rawDigits: parseLiuyaoSource(diagramInput),
+    rawDigits: lines[1],
+    parsedDate: parsedDate,
+    lunarInfo: getLunarInfo(parsedDate),
   };
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    result.dateError = `无效日期：${dateInput}`;
-    return result;
-  }
-
-  const lunarInfo = solarLunar.solar2lunar(parsedDate.getFullYear(), parsedDate.getMonth() + 1, parsedDate.getDate());
-  if (lunarInfo === -1) {
-    result.dateError = `无效日期：${dateInput}`;
-    return result;
-  }
-
-  result.parsedDate = parsedDate;
-  result.lunarInfo = lunarInfo;
-  result.sixGods = SixGodTable.find((v) => v.heavenlyStem === lunarInfo.gzDay.charAt(0))?.gods;
   return result;
-}
-
-function parseLiuyaoSource(source: string): string | null {
-  source = source.replace(/\s+/g, '');
-
-  if (source !== undefined && /^[0-3]{6}$/.test(source)) {
-    return source;
-  }
-
-  const trigramDigits = parseTrigramSequence(source);
-  if (trigramDigits) {
-    return trigramDigits;
-  }
-
-  return null;
-}
-
-function parseTrigramSequence(value: string): string | null {
-  const trigrams = Array.from(value);
-
-  if (trigrams.length !== 6) {
-    return null;
-  }
-
-  const digits = trigrams.map((name) => TRIGRAM_TO_DIGIT.get(name));
-  return digits.every((digit): digit is YaoValue => digit !== undefined) ? digits.join('') : null;
 }
 
 function getHexagram(rawDigits: string): HexagramInfo | undefined {

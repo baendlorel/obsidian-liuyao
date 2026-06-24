@@ -1,8 +1,15 @@
+import solarLunar from 'solarlunar';
+
 export const changeYaos = (rawDigits: string): string =>
   rawDigits
     .split('')
     .map((digit) => '1122'[digit as any])
     .join('');
+
+export const getLunarInfo = (date: Date) => {
+  const v = solarLunar.solar2lunar(date.getFullYear(), date.getMonth() + 1, date.getDate());
+  return v === -1 ? 'invalid' : v;
+};
 
 export const dtm = (date: Date): string => {
   const y = date.getFullYear();
