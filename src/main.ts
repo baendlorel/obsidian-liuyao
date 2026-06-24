@@ -11,7 +11,7 @@ function renderLiuyaoBlock(source: string, element: HTMLElement): void {
 
   const panel = element.appendChild(html`<section class="liuyao-panel"></section>`);
 
-  if (hexagram === 'invalid' || date === 'invalid') {
+  if (hexagram === 'invalid' && date === 'invalid') {
     // TEST 这里可以测试很大的日期，会触发羡慕的阴历字典不足异常
     panel.append(
       html`<div class="liuyao-error">
@@ -33,7 +33,7 @@ function renderLiuyaoBlock(source: string, element: HTMLElement): void {
   }
 
   const wrapper = panel.appendChild(html`<div class="liuyao-block"></div>`);
-  if (date && lunar) {
+  if (date && date !== 'invalid' && lunar) {
     if (lunar !== 'invalid') {
       wrapper.append(solarlunarCard({ date, lunar }));
     } else {
@@ -41,7 +41,7 @@ function renderLiuyaoBlock(source: string, element: HTMLElement): void {
     }
   }
 
-  if (hexagram) {
+  if (hexagram && hexagram !== 'invalid') {
     const primaryLines = build(hexagram, sixGods);
     wrapper.append(liuyaoCard({ hexagram, lines: primaryLines }));
 

@@ -34,7 +34,7 @@ export const solarlunarCard = ({ date, lunar }: SolarlunarCardData) =>
  */
 const yaoRaw = ({ sixGod, description, relation, isYang, tone }: DisplayLine) => raw`
     <div class="liuyao-card__row">
-      <span class="liuyao-card__text liuyao-card__text--god  ${sixGod ? 'd-none' : ''}">${sixGod}</span>
+      <span class="liuyao-card__text liuyao-card__text--god  ${sixGod ? '' : 'd-none'}">${sixGod}</span>
       <span class="liuyao-card__text liuyao-card__text--left">${description}</span>
       <div class="liuyao-line" data-kind="${isYang ? 'yang' : 'yin'}" data-tone="${tone}" aria-hidden="true">
         <span class="liuyao-line__segment"></span>
