@@ -2,6 +2,9 @@
 
 This plugin renders six-line divination diagrams in Obsidian from a fenced `liuyao` code block.
 
+## 0.2.x Released
+You can now choose the color of the dynamic Yaos.
+
 ## Supported Syntax
 
 <pre>
@@ -14,10 +17,13 @@ The `liuyao` block can also include a date on the first non-empty line and the h
 
 <pre>
 ```liuyao
-  2026-05-16 09:30
-  123123
+  2026-05-05 22:03
+  332112
 ```
 </pre>
+
+It will be rendered like
+<img src="assets/example.png" alt="liuyao block">
 
 ## Rules
 

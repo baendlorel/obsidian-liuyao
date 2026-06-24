@@ -1,8 +1,17 @@
-import { Plugin } from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
 import { html } from './utils.js';
 import { solarlunarCard, liuyaoCard, liuyaoArrow } from './templates.js';
 import { build, buildChanged, parse } from './parser.js';
+import type { LiuyaoRendererSettings } from './types.js';
+
+const DEFAULT_SETTINGS: LiuyaoRendererSettings = {
+  changingLineColor: '#c62828',
+};
+
+function normalizeColor(color: unknown): string {
+  return typeof color === 'string' && /^#[0-9a-fA-F]{6}$/.test(color) ? color : DEFAULT_SETTINGS.changingLineColor;
+}
 
 function renderLiuyaoBlock(source: string, element: HTMLElement): void {
   const { lunar, hexagram, date, sixGods } = parse(source);
@@ -55,7 +64,77 @@ function renderLiuyaoBlock(source: string, element: HTMLElement): void {
 }
 
 export default class LiuyaoRendererPlugin extends Plugin {
-  onload(): void {
+  settings: LiuyaoRendererSettings = { ...DEFAULT_SETTINGS };
+
+  async onload(): Promise<void> {
+    await this.loadSettings();
+
+    this.applySettings();
+    this.addSettingTab(new LiuyaoSettingTab(this.app, this));
     this.registerMarkdownCodeBlockProcessor('liuyao', renderLiuyaoBlock);
+  }
+
+  onunload(): void {
+    document.body.style.removeProperty('--liuyao-changing-line-color');
+  }
+
+  async loadSettings(): Promise<void> {
+    const loaded = (await this.loadData()) as Partial<LiuyaoRendererSettings> | null;
+    this.settings = {
+      ...DEFAULT_SETTINGS,
+      ...loaded,
+      changingLineColor: normalizeColor(loaded?.changingLineColor),
+    };
+  }
+
+  async saveSettings(): Promise<void> {
+    await this.saveData(this.settings);
+  }
+
+  applySettings(): void {
+    document.body.style.setProperty('--liuyao-changing-line-color', normalizeColor(this.settings.changingLineColor));
+  }
+
+  async onExternalSettingsChange(): Promise<void> {
+    await this.loadSettings();
+    this.applySettings();
+  }
+}
+
+class LiuyaoSettingTab extends PluginSettingTab {
+  plugin: LiuyaoRendererPlugin;
+
+  constructor(app: App, plugin: LiuyaoRendererPlugin) {
+    super(app, plugin);
+    this.plugin = plugin;
+  }
+
+  display(): void {
+    const { containerEl } = this;
+
+    containerEl.empty();
+    containerEl.createEl('h2', { text: '六爻渲染设置' });
+
+    new Setting(containerEl)
+      .setName('变爻颜色')
+      .setDesc('用于标记老阴、老阳变爻的颜色。')
+      .addColorPicker((colorPicker) =>
+        colorPicker.setValue(this.plugin.settings.changingLineColor).onChange(async (value) => {
+          this.plugin.settings.changingLineColor = normalizeColor(value);
+          this.plugin.applySettings();
+          await this.plugin.saveSettings();
+        }),
+      )
+      .addExtraButton((button) =>
+        button
+          .setIcon('reset')
+          .setTooltip('恢复默认颜色')
+          .onClick(async () => {
+            this.plugin.settings.changingLineColor = DEFAULT_SETTINGS.changingLineColor;
+            this.plugin.applySettings();
+            await this.plugin.saveSettings();
+            this.display();
+          }),
+      );
   }
 }

@@ -34,3 +34,7 @@ export interface LiuyaoCardData {
 export interface VersionWatermarkData {
   version: string;
 }
+
+export interface LiuyaoRendererSettings {
+  changingLineColor: string;
+}
