@@ -16,19 +16,14 @@ export default class LiuyaoRendererPlugin extends Plugin {
   }
 
   private renderLiuyaoBlock(source: string, element: HTMLElement): void {
-    const { lunarInfo, gram: rawDigits, parsedDate, dateError, sixGods } = parseLiuyaoBlock(source);
+    const { lunar, gram, date, sixGods } = parseLiuyaoBlock(source);
 
     element.empty();
 
     const panel = element.appendChild(html`<section class="liuyao-panel"></section>`);
 
-    if (lunarInfo && parsedDate) {
-      panel.append(createSolarlunarCard({ parsedDate, lunarInfo }));
-    } else if (dateError) {
-      panel.append(html`<div class="solarlunar-error">${dateError}</div>`);
-    }
-
-    if (rawDigits === 'invalid') {
+    if (gram === 'invalid' || date === 'invalid') {
+      // TEST 这里可以测试很大的日期，会触发羡慕的阴历字典不足异常
       panel.append(
         html`<div class="liuyao-error">
           <h6>六爻块数据无效！格式如下：</h6>
@@ -42,6 +37,7 @@ export default class LiuyaoRendererPlugin extends Plugin {
             <li>单拆重交，例：拆单单拆单拆（水风井）</li>
             <li>八卦名，例：坤坤坎艮坎坤（等价于001110，泽山咸->乾为天）</li>
           </ol>
+          <small>${lunar === 'invalid' ? '日期正常，但阴历字典数据不足，无法获取六神信息' : ''}</small>
         </div>`,
       );
       return;
@@ -103,31 +99,21 @@ function parseLiuyaoBlock(source: string): ParsedLiuyaoBlock {
       return result;
     }
 
-    result.parsedDate = createDate(lines[0]);
-    result.lunarInfo = createLunarInfo(result.parsedDate);
+    result.date = createDate(lines[0]);
+    result.lunar = createLunarInfo(result.date);
     return result;
   }
 
   // 两行，必须第一行时辰第二行卦象
   result.gram = createHexagram(lines[1]);
-  result.parsedDate = createDate(lines[0]);
-  result.lunarInfo = createLunarInfo(result.parsedDate);
-  if (result.lunarInfo !== 'invalid') {
+  result.date = createDate(lines[0]);
+  result.lunar = createLunarInfo(result.date);
+  if (result.lunar !== 'invalid') {
     result.sixGods = SixGodTable.find(
-      (v) => v.heavenlyStem === (result.lunarInfo as SolarLunarResult).gzDay.charAt(0),
+      (v) => v.heavenlyStem === (result.lunar as SolarLunarResult).gzDay.charAt(0),
     )?.gods;
   }
   return result;
-}
-
-function getHexagram(rawDigits: string): HexagramInfo | undefined {
-  // TODO 加入单拆重交创建六爻块的方式
-  const binary = rawDigits
-    .split('')
-    .map((digit) => (digit === '1' || digit === '3' ? '1' : '0'))
-    .join('');
-
-  return HEXAGRAM_BY_BINARY.get(binary as any);
 }
 
 function buildPrimaryYaos(rawDigits: string, hexagram: HexagramInfo, sixGods?: SixGod[]): DisplayLine[] {

@@ -6,8 +6,8 @@ import type { SolarLunarResult } from 'solarlunar';
  */
 export interface ParsedLiuyaoBlock {
   gram?: Hexagram | 'invalid';
-  parsedDate?: Date | 'invalid';
-  lunarInfo?: SolarLunarResult | 'invalid';
+  date?: Date | 'invalid';
+  lunar?: SolarLunarResult | 'invalid';
   sixGods?: SixGod[];
 }
 
