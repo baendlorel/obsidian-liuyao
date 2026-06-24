@@ -45,13 +45,13 @@ export const dtm = (date: Date): string => {
 export const getShichen = (date: Date): string =>
   '子丑丑寅寅卯卯辰辰巳巳午午未未申申酉酉戌戌亥亥子'[date.getHours()] ?? '未知';
 
-const tp = document.createElement('template');
+const tp = document.createElement('div');
 /**
  * Returns the first html element
  */
 export const html = (template: TemplateStringsArray, ...args: string[]): HTMLElement => {
   tp.innerHTML = raw(template, ...args);
-  return tp.firstElementChild as HTMLElement;
+  return tp.find('div,section,svg');
 };
 
 /**
