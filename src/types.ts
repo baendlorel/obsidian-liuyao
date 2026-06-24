@@ -5,7 +5,7 @@ import type { SolarLunarResult } from 'solarlunar';
  * 这些字段原则是可以没有但会是invalid的
  */
 export interface ParsedLiuyaoBlock {
-  gram?: Hexagram | 'invalid';
+  hexagram?: Hexagram | 'invalid';
   date?: Date | 'invalid';
   lunar?: SolarLunarResult | 'invalid';
   sixGods?: SixGod[];
@@ -27,7 +27,7 @@ export interface DisplayLine {
 }
 
 export interface LiuyaoCardData {
-  hexagramInfo: HexagramInfo;
+  hexagram: Hexagram;
   lines: DisplayLine[];
 }
 

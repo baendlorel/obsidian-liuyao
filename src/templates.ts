@@ -34,7 +34,7 @@ export const createSolarlunarCard = ({ parsedDate, lunarInfo }: SolarlunarCardDa
 /**
  * 创建单个爻行的模板
  */
-const createLiuyaoLineRowHtml = ({ sixGod, description, relation, isYang, tone }: DisplayLine) => raw`<!-- t -->
+const yaoRaw = ({ sixGod, description, relation, isYang, tone }: DisplayLine) => raw`<!-- t -->
     <div class="liuyao-card__row">
       <span class="liuyao-card__text liuyao-card__text--god  ${sixGod ? 'd-none' : ''}">${sixGod}</span>
       <span class="liuyao-card__text liuyao-card__text--left">${description}</span>
@@ -49,9 +49,8 @@ const createLiuyaoLineRowHtml = ({ sixGod, description, relation, isYang, tone }
 /**
  * 创建六爻卡片的模板
  */
-export const createLiuyaoCard = ({ hexagramInfo, lines }: LiuyaoCardData) => {
-  const hexagram = Hexagram.fromYangCounts(hexagramInfo.yangCounts)!;
-  const hexagramTitle = `${hexagram.palace} ${hexagramInfo.id}`;
+export const liuyaoCard = ({ hexagram, lines }: LiuyaoCardData) => {
+  const hexagramTitle = `${hexagram.palace} ${hexagram.info.id}`;
 
   // 第一个有六神就是都有六神
   const noGodsClass = !lines[0].sixGod ? 'liuyao-card__no-gods' : '';
@@ -59,14 +58,14 @@ export const createLiuyaoCard = ({ hexagramInfo, lines }: LiuyaoCardData) => {
   return html`<!-- t -->
     <section class="liuyao-card ${noGodsClass}" title="${hexagramTitle}">
       <div class="liuyao-card__title">${hexagramTitle}</div>
-      ${lines.map((lineInfo) => createLiuyaoLineRowHtml(lineInfo)).join('')}
+      ${lines.map((lineInfo) => yaoRaw(lineInfo)).join('')}
     </section>`;
 };
 
 /**
  * 创建箭头图标的模板
  */
-export const createLiuyaoArrow = () =>
+export const liuyaoArrow = () =>
   html`<!-- t -->
     <div class="liuyao-arrow" aria-hidden="true">
       <svg
@@ -88,6 +87,6 @@ export const createLiuyaoArrow = () =>
 /**
  * 创建版本水印的模板
  */
-export const createVersionWatermark = ({ version }: VersionWatermarkData) => html`
+export const versionWatermark = ({ version }: VersionWatermarkData) => html`
   <div class="liuyao-watermark">v${version}</div>
 `;

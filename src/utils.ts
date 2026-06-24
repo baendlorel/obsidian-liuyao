@@ -1,12 +1,6 @@
 import { Hexagram } from 'liuyao';
 import solarLunar, { SolarLunarResult } from 'solarlunar';
 
-export const changeYaos = (rawDigits: string): string =>
-  rawDigits
-    .split('')
-    .map((digit) => '1122'[digit as any])
-    .join('');
-
 export const createDate = (s: string): Date | 'invalid' => {
   const d = new Date(s);
   return isNaN(d.getTime()) ? 'invalid' : d;

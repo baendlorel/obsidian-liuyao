@@ -2,7 +2,7 @@ import solarLunar, { SolarLunarResult } from 'solarlunar';
 import { Plugin } from 'obsidian';
 import { Hexagram, HexagramInfo, HexagramInfoTable, SixGod, SixGodTable, TrigramInfoTable } from 'liuyao';
 import { changeYaos, createDate, createHexagram, createLunarInfo, h, html } from './utils.js';
-import { createSolarlunarCard, createLiuyaoCard, createLiuyaoArrow, createVersionWatermark } from './templates.js';
+import { createSolarlunarCard, liuyaoCard, liuyaoArrow, versionWatermark } from './templates.js';
 import type { DisplayLine, ParsedLiuyaoBlock } from './types.js';
 
 type YaoValue = '0' | '1' | '2' | '3';
@@ -16,13 +16,13 @@ export default class LiuyaoRendererPlugin extends Plugin {
   }
 
   private renderLiuyaoBlock(source: string, element: HTMLElement): void {
-    const { lunar, gram, date, sixGods } = parseLiuyaoBlock(source);
+    const { lunar, hexagram, date, sixGods } = parseLiuyaoBlock(source);
 
     element.empty();
 
     const panel = element.appendChild(html`<section class="liuyao-panel"></section>`);
 
-    if (gram === 'invalid' || date === 'invalid') {
+    if (hexagram === 'invalid' || date === 'invalid') {
       // TEST 这里可以测试很大的日期，会触发羡慕的阴历字典不足异常
       panel.append(
         html`<div class="liuyao-error">
@@ -43,32 +43,23 @@ export default class LiuyaoRendererPlugin extends Plugin {
       return;
     }
 
-    const wrapper = h('div', 'liuyao-block');
+    // TODO 如果只有日期就只画日期
 
-    const primaryLines = build(rawDigits, hexagram, sixGods);
-    wrapper.append(createLiuyaoCard({ hexagramInfo: hexagram, lines: primaryLines }));
-
-    const changedDigits = changeYaos(rawDigits);
-    if (changedDigits !== rawDigits) {
-      const changedHexagram = getHexagram(changedDigits);
-
-      if (!changedHexagram) {
-        panel.append(html`<div class="liuyao-error">无法找到变卦数据：${changedDigits}</div>`);
-        return;
-      }
-
-      wrapper.append(createLiuyaoArrow());
-      wrapper.append(
-        createLiuyaoCard({
-          hexagramInfo: changedHexagram,
-          lines: buildChangedYaos(rawDigits, changedDigits, changedHexagram),
-        }),
-      );
+    const wrapper = panel.appendChild(html`<div class="liuyao-block"></div>`);
+    if (date && lunar && lunar !== 'invalid') {
     }
 
-    panel.append(wrapper);
-    panel.append(createVersionWatermark({ version: this.manifest.version }));
-    element.append(panel);
+    if (hexagram) {
+      const primaryLines = build(hexagram);
+      wrapper.append(liuyaoCard({ hexagram, lines: primaryLines }));
+
+      const changed = hexagram.toChanged();
+      if (changed) {
+        wrapper.append(liuyaoArrow(), liuyaoCard({ hexagram: changed, lines: buildChanged(changed) }));
+      }
+    }
+
+    panel.append(wrapper, versionWatermark({ version: this.manifest.version }));
   }
 }
 
@@ -81,14 +72,14 @@ const parseLiuyaoBlock = (source: string): ParsedLiuyaoBlock => {
     .filter((line) => line.length > 0);
 
   if (lines.length === 0) {
-    result.gram = 'invalid';
+    result.hexagram = 'invalid';
     return result;
   }
 
   // 只有一行，可能是时辰可能是卦象
   if (lines.length === 1) {
-    result.gram = createHexagram(lines[0]);
-    if (result.gram !== 'invalid') {
+    result.hexagram = createHexagram(lines[0]);
+    if (result.hexagram !== 'invalid') {
       return result;
     }
 
@@ -98,7 +89,7 @@ const parseLiuyaoBlock = (source: string): ParsedLiuyaoBlock => {
   }
 
   // 两行，必须第一行时辰第二行卦象
-  result.gram = createHexagram(lines[1]);
+  result.hexagram = createHexagram(lines[1]);
   result.date = createDate(lines[0]);
   result.lunar = createLunarInfo(result.date);
   if (result.lunar !== 'invalid') {
@@ -120,22 +111,13 @@ const build = (hexagram: Hexagram, sixGods?: SixGod[]): DisplayLine[] =>
     }))
     .reverse();
 
-const buildChanged = (hexagram: Hexagram): DisplayLine[] | null => {
-  const changed = hexagram.toChanged();
-  if (!changed) {
-    return null;
-  }
-
-  return changed.yaos
-    .map<DisplayLine>((yao, index) => {
-      const setup = hexagram.info.setupInfo[index];
-      return {
-        sixGod: '',
-        description: setup?.kin || '',
-        relation: setup?.hostGuest || '',
-        isYang: yao.polar === 1,
-        tone: yao.isChanged ? 'default' : 'muted',
-      };
-    })
+const buildChanged = (hexagram: Hexagram): DisplayLine[] =>
+  hexagram.yaos
+    .map<DisplayLine>((yao, index) => ({
+      sixGod: '',
+      description: hexagram.info.setupInfo[index]?.kin || '',
+      relation: hexagram.info.setupInfo[index]?.hostGuest || '',
+      isYang: yao.polar === 1,
+      tone: yao.isChanged ? 'default' : 'muted',
+    }))
     .reverse();
-};
