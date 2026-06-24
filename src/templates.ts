@@ -2,31 +2,29 @@ import type { DisplayLine, LiuyaoCardData, SolarlunarCardData, VersionWatermarkD
 import { dtm, getShichen, h, div, span } from './utils.js';
 
 // FIXME obsidian不允许用innerHTML的方式
-export const solarlunarCard = ({ date, lunar }: SolarlunarCardData) => div('solarlunar-card', []);
-html`<div class="solarlunar-card">
-  <div class="solarlunar-card__row">
-    <span class="solarlunar-card__label">公历</span>
-    <span class="solarlunar-card__value">${dtm(date)} ${lunar.ncWeek}</span>
+export const solarlunarCard = ({ date, lunar }: SolarlunarCardData) => div('lunar-card', []);
+html`<div class="lunar-card">
+  <div class="lunar-card__row">
+    <span class="lunar-card__label">公历</span>
+    <span class="lunar-card__value">${dtm(date)} ${lunar.ncWeek}</span>
   </div>
-  <div class="solarlunar-card__row">
-    <span class="solarlunar-card__label">农历</span>
-    <span class="solarlunar-card__value">
+  <div class="lunar-card__row">
+    <span class="lunar-card__label">农历</span>
+    <span class="lunar-card__value">
       ${lunar.yearCn} ${lunar.monthCn}${lunar.dayCn}${lunar.isLeap ? '（闰月）' : ''}
     </span>
   </div>
-  <div class="solarlunar-card__row">
-    <span class="solarlunar-card__label">干支</span>
-    <span class="solarlunar-card__value">
-      ${lunar.gzYear}年 ${lunar.gzMonth}月 ${lunar.gzDay}日 ${getShichen(date)}时
-    </span>
+  <div class="lunar-card__row">
+    <span class="lunar-card__label">干支</span>
+    <span class="lunar-card__value"> ${lunar.gzYear}年 ${lunar.gzMonth}月 ${lunar.gzDay}日 ${getShichen(date)}时 </span>
   </div>
-  <div class="solarlunar-card__row">
-    <span class="solarlunar-card__label">生肖</span>
-    <span class="solarlunar-card__value">${lunar.animal}</span>
+  <div class="lunar-card__row">
+    <span class="lunar-card__label">生肖</span>
+    <span class="lunar-card__value">${lunar.animal}</span>
   </div>
-  <div class="solarlunar-card__row">
-    <span class="solarlunar-card__label">节气</span>
-    <span class="solarlunar-card__value">${lunar.isTerm ? lunar.term : '无'}</span>
+  <div class="lunar-card__row">
+    <span class="lunar-card__label">节气</span>
+    <span class="lunar-card__value">${lunar.isTerm ? lunar.term : '无'}</span>
   </div>
 </div>`;
 
