@@ -31,8 +31,18 @@ export default class LiuyaoRendererPlugin extends Plugin {
     if (!rawDigits) {
       panel.append(
         html`<div class="liuyao-error">
-          六爻块数据无效. 必须使用 6 个 0~3 的数字、6个“单拆重交”文字、 6 个八卦名。第一行可以写日期（格式为2000-01-01
-          10:20），第二行写六爻表达式也行。
+          六爻块数据无效！必须的格式如下
+          <div>
+            <h6>可以写的内容：</h6>
+            <div>可以只写1行卦象</div>
+            <div>也可以第1行写日期（格式为2000-01-01 10:20），第2行写六爻表达式也行。</div>
+            <h6>六爻表达式的格式：</h6>
+            <ol>
+              <li>数字0~3，例：211212（水风井）</li>
+              <li>单拆重交，例：拆单单拆单拆（水风井）</li>
+              <li>八卦名，例：坤坤坎艮坎坤（等价于001110，泽山咸->乾为天）</li>
+            </ol>
+          </div>
         </div>`,
       );
       return;

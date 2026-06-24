@@ -39,11 +39,17 @@ export const svg = <T extends keyof SVGElementTagNameMap>(
 };
 
 const tp = document.createElement('template');
+/**
+ * Returns the first html element
+ */
 export const html = (template: TemplateStringsArray, ...args: string[]): HTMLElement => {
   tp.innerHTML = raw(template, ...args);
   return tp.firstElementChild as HTMLElement;
 };
 
+/**
+ * Only returns string
+ */
 export const raw = (template: TemplateStringsArray, ...args: string[]): string => {
   const s: string[] = [];
   for (let i = 0; i < template.length - 1; i++) {
