@@ -46,8 +46,6 @@ console.log(`Version bumped: ${currentVersion} -> ${nextVersion}`);
 console.log('Updated package.json and manifest.json');
 console.log('Building...');
 
-execSync('node esbuild.config.mjs');
-
 console.log('Creating release commit...');
 
 const workingTreeStatus = execSync('git status --porcelain', { encoding: 'utf-8' }).trim();
