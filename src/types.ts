@@ -1,4 +1,4 @@
-import type { SixGod, HexagramInfo, Hexagram } from 'liuyao';
+import type { SixGod, Hexagram } from 'liuyao';
 import type { SolarLunarResult } from 'solarlunar';
 
 /**
@@ -29,10 +29,6 @@ export interface DisplayLine {
 export interface LiuyaoCardData {
   hexagram: Hexagram;
   lines: DisplayLine[];
-}
-
-export interface VersionWatermarkData {
-  version: string;
 }
 
 export interface LiuyaoRendererSettings {

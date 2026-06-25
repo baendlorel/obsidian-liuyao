@@ -72,7 +72,7 @@ export default class LiuyaoRendererPlugin extends Plugin {
   }
 
   onunload(): void {
-    document.body.style.removeProperty('--liuyao-changing-line-color');
+    activeDocument.body.style.removeProperty('--liuyao-changing-line-color');
   }
 
   async loadSettings(): Promise<void> {
@@ -89,7 +89,7 @@ export default class LiuyaoRendererPlugin extends Plugin {
   }
 
   applySettings(): void {
-    document.body.style.setProperty('--liuyao-changing-line-color', normalizeColor(this.settings.changingLineColor));
+    activeDocument.body.style.setProperty('--liuyao-changing-line-color', normalizeColor(this.settings.changingLineColor));
   }
 
   async onExternalSettingsChange(): Promise<void> {

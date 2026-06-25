@@ -54,7 +54,7 @@ export const h = <K extends keyof HTMLElementTagNameMap>(
   className: string,
   children?: Child[] | string,
 ): HTMLElementTagNameMap[K] => {
-  const e = document.createElement(tag);
+  const e = activeDocument.createElement(tag);
   e.className = className;
   if (Array.isArray(children)) {
     e.append.apply(e, children);
@@ -66,6 +66,8 @@ export const h = <K extends keyof HTMLElementTagNameMap>(
 
 export const div = (className: string, children?: Child[] | string) => h('div', className, children);
 export const span = (className: string, children?: Child[] | string) => h('span', className, children);
+export const svg = <K extends keyof SVGElementTagNameMap>(tag: K): SVGElementTagNameMap[K] =>
+  activeDocument.createElementNS('http://www.w3.org/2000/svg', tag);
 export const ol = (list: string[]) =>
   h(
     'ol',

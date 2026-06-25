@@ -1,5 +1,5 @@
 import type { DisplayLine, LiuyaoCardData, SolarlunarCardData } from './types.js';
-import { dtm, getShichen, div, span } from './utils.js';
+import { dtm, getShichen, div, span, svg } from './utils.js';
 
 const row = (label: string, value: string) =>
   div('lunar-card__row', [span('lunar-card__label', label), span('lunar-card__value', value)]);
@@ -55,24 +55,24 @@ export const liuyaoCard = ({ hexagram, lines }: LiuyaoCardData) => {
  * 创建箭头图标的模板
  */
 export const liuyaoArrow = () => {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.classList.add('liuyao-arrow__icon');
-  svg.setAttribute('viewBox', '0 0 20 20');
-  svg.setAttribute('width', '20');
-  svg.setAttribute('height', '20');
-  svg.setAttribute('fill', 'none');
-  svg.setAttribute('stroke', 'currentColor');
-  svg.setAttribute('stroke-width', '1.8');
-  svg.setAttribute('stroke-linecap', 'round');
-  svg.setAttribute('stroke-linejoin', 'round');
+  const icon = svg('svg');
+  icon.classList.add('liuyao-arrow__icon');
+  icon.setAttribute('viewBox', '0 0 20 20');
+  icon.setAttribute('width', '20');
+  icon.setAttribute('height', '20');
+  icon.setAttribute('fill', 'none');
+  icon.setAttribute('stroke', 'currentColor');
+  icon.setAttribute('stroke-width', '1.8');
+  icon.setAttribute('stroke-linecap', 'round');
+  icon.setAttribute('stroke-linejoin', 'round');
 
-  const shaft = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  const shaft = svg('path');
   shaft.setAttribute('d', 'M4 10h12');
-  const head = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  const head = svg('path');
   head.setAttribute('d', 'm11 5 5 5-5 5');
-  svg.append(shaft, head);
+  icon.append(shaft, head);
 
-  const arrow = div('liuyao-arrow', [svg]);
+  const arrow = div('liuyao-arrow', [icon]);
   arrow.setAttribute('aria-hidden', 'true');
   return arrow;
 };
