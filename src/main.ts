@@ -89,7 +89,10 @@ export default class LiuyaoRendererPlugin extends Plugin {
   }
 
   applySettings(): void {
-    activeDocument.body.style.setProperty('--liuyao-changing-line-color', normalizeColor(this.settings.changingLineColor));
+    activeDocument.body.style.setProperty(
+      '--liuyao-changing-line-color',
+      normalizeColor(this.settings.changingLineColor),
+    );
   }
 
   async onExternalSettingsChange(): Promise<void> {
