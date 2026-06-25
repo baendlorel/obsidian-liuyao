@@ -1,20 +1,26 @@
+import { type ParsedResult, ResultState } from './types.js';
 import { Hexagram } from 'liuyao';
 import solarLunar, { SolarLunarResult } from 'solarlunar';
 
-export const createDate = (s: string): Date | 'invalid' => {
+export const createDate = (s: string): ParsedResult<Date> => {
   const d = new Date(s);
-  return isNaN(d.getTime()) ? 'invalid' : d;
+  return isNaN(d.getTime()) ? { value: null, state: ResultState.Invalid } : { value: d, state: ResultState.Valid };
 };
 
-export const createLunarInfo = (date: Date | 'invalid'): SolarLunarResult | 'invalid' => {
-  if (date === 'invalid') {
-    return 'invalid';
+export const createLunarInfo = (date: ParsedResult<Date>): ParsedResult<SolarLunarResult> => {
+  if (date.state === ResultState.None) {
+    return { value: null, state: ResultState.None };
   }
-  const v = solarLunar.solar2lunar(date.getFullYear(), date.getMonth() + 1, date.getDate());
-  return v === -1 ? 'invalid' : v;
+
+  if (date.state === ResultState.Invalid || date.value === null) {
+    return { value: null, state: ResultState.Invalid };
+  }
+
+  const v = solarLunar.solar2lunar(date.value.getFullYear(), date.value.getMonth() + 1, date.value.getDate());
+  return v === -1 ? { value: null, state: ResultState.Invalid } : { value: v, state: ResultState.Valid };
 };
 
-export const createHexagram = (s: string): Hexagram | 'invalid' => {
+export const createHexagram = (s: string): ParsedResult<Hexagram> => {
   const map: Record<string, number> = {
     乾: 3,
     坤: 0,
@@ -25,12 +31,11 @@ export const createHexagram = (s: string): Hexagram | 'invalid' => {
     艮: 1,
     巽: 2,
   };
-  return (
+  const result =
     Hexagram.fromQuaternary(s) ??
     Hexagram.fromSymbolName(s) ??
-    Hexagram.fromYangCounts(s.split('').map((c) => map[c] ?? 4)) ??
-    'invalid'
-  );
+    Hexagram.fromYangCounts(s.split('').map((c) => map[c] ?? 4));
+  return result ? { value: result, state: ResultState.Valid } : { value: null, state: ResultState.Invalid };
 };
 
 export const dtm = (date: Date): string => {

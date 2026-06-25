@@ -1,9 +1,9 @@
 import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
+import { type LiuyaoRendererSettings, ResultState } from './types.js';
 import { div, h, ol } from './utils.js';
 import { solarlunarCard, liuyaoCard, liuyaoArrow } from './templates.js';
 import { build, buildChanged, parse } from './parser.js';
-import type { LiuyaoRendererSettings } from './types.js';
 
 const DEFAULT_SETTINGS: LiuyaoRendererSettings = {
   changingLineColor: '#c62828',
@@ -20,8 +20,7 @@ function renderLiuyaoBlock(source: string, element: HTMLElement): void {
 
   const panel = element.appendChild(div('liuyao-panel'));
 
-  if (hexagram === 'invalid' && date === 'invalid') {
-    // TEST 这里可以测试很大的日期，会触发羡慕的阴历字典不足异常
+  if (hexagram.state === ResultState.Invalid || date.state === ResultState.Invalid) {
     panel.append(
       div('liuyao-error', [
         h('h6', '', '六爻块数据无效！格式如下：'),
@@ -32,26 +31,24 @@ function renderLiuyaoBlock(source: string, element: HTMLElement): void {
           '单拆重交，例：拆单单拆单拆（水风井）',
           '八卦名，例：坤坤坎艮坎坤（等价于001110，泽山咸->乾为天）',
         ]),
-        h('small', '', lunar === 'invalid' ? '日期正常，但阴历字典数据不足，无法获取六神信息' : ''),
+        h('small', '', lunar.state === ResultState.Invalid ? '日期正常，但阴历字典数据不足，无法获取六神信息' : ''),
       ]),
     );
     return;
   }
 
   const wrapper = panel.appendChild(div('liuyao-block'));
-  if (date && date !== 'invalid' && lunar) {
-    if (lunar !== 'invalid') {
-      wrapper.append(solarlunarCard({ date, lunar }));
-    } else {
-      wrapper.append(div('liuyao-error', '日期正常，但阴历字典数据不足，无法获取六神信息'));
-    }
+  if (date.state === ResultState.Valid && date.value && lunar.state === ResultState.Valid && lunar.value) {
+    wrapper.append(solarlunarCard({ date: date.value, lunar: lunar.value }));
+  } else if (date.state === ResultState.Valid && lunar.state === ResultState.Invalid) {
+    wrapper.append(div('liuyao-error', '日期正常，但阴历字典数据不足，无法获取六神信息'));
   }
 
-  if (hexagram && hexagram !== 'invalid') {
-    const primaryLines = build(hexagram, sixGods);
-    wrapper.append(liuyaoCard({ hexagram, lines: primaryLines }));
+  if (hexagram.state === ResultState.Valid && hexagram.value) {
+    const primaryLines = build(hexagram.value, sixGods);
+    wrapper.append(liuyaoCard({ hexagram: hexagram.value, lines: primaryLines }));
 
-    const changed = hexagram.toChanged();
+    const changed = hexagram.value.toChanged();
     if (changed) {
       wrapper.append(liuyaoArrow(), liuyaoCard({ hexagram: changed, lines: buildChanged(changed) }));
     }

@@ -18,7 +18,7 @@ export const enum ResultState {
   None,
 }
 
-type ParseResult<T> =
+export type ParsedResult<T> =
   | {
       value: T;
       state: ResultState.Valid;
@@ -32,9 +32,9 @@ type ParseResult<T> =
  * 这些字段原则是可以没有但会是invalid的
  */
 export interface ParsedLiuyaoBlock {
-  hexagram: ParseResult<Hexagram>;
-  date?: Date | 'invalid';
-  lunar?: SolarLunarResult | 'invalid';
+  hexagram: ParsedResult<Hexagram>;
+  date: ParsedResult<Date>;
+  lunar: ParsedResult<SolarLunarResult>;
   sixGods?: SixGod[];
 }
 
