@@ -57,8 +57,7 @@ export const h = <K extends keyof HTMLElementTagNameMap>(
   const e = activeDocument.createElement(tag);
   e.className = className;
   if (Array.isArray(children)) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    e.append.apply(e, children);
+    e.append(...children);
   } else if (typeof children === 'string') {
     e.append(children);
   }
