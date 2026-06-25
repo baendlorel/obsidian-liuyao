@@ -17,10 +17,6 @@ function writeJson(filePath: string, value: VersionedJson): void {
   writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, 'utf-8');
 }
 
-function run(command: string): string {
-  return execSync(command, { encoding: 'utf-8' }).trim();
-}
-
 function bumpPatchVersion(version: string): string {
   const match = version.match(/^(\d+)\.(\d+)\.(\d+)$/);
   if (!match) {
@@ -34,13 +30,6 @@ function bumpPatchVersion(version: string): string {
 const cwd = process.cwd();
 const packageJsonPath = resolve(cwd, 'package.json');
 const manifestJsonPath = resolve(cwd, 'manifest.json');
-
-const workingTreeStatus = run('git status --porcelain');
-if (workingTreeStatus) {
-  console.error('Working tree is not clean. Commit or stash changes before running pub.');
-  process.exit(1);
-}
-
 const packageJson = readJson(packageJsonPath);
 const manifestJson = readJson(manifestJsonPath);
 
@@ -55,7 +44,17 @@ writeJson(manifestJsonPath, manifestJson);
 
 console.log(`Version bumped: ${currentVersion} -> ${nextVersion}`);
 console.log('Updated package.json and manifest.json');
+console.log('Building...');
+
+execSync('node esbuild.config.mjs');
+
 console.log('Creating release commit...');
+
+const workingTreeStatus = execSync('git status --porcelain', { encoding: 'utf-8' }).trim();
+if (workingTreeStatus) {
+  console.error('Working tree is not clean. Commit or stash changes before running pub.');
+  process.exit(1);
+}
 
 execSync('git add package.json manifest.json', { stdio: 'inherit' });
 execSync(`git commit -m "chore: release ${nextVersion}"`, { stdio: 'inherit' });
