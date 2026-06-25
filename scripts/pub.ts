@@ -48,12 +48,6 @@ console.log('Building...');
 
 console.log('Creating release commit...');
 
-const workingTreeStatus = execSync('git status --porcelain', { encoding: 'utf-8' }).trim();
-if (workingTreeStatus) {
-  console.error('Working tree is not clean. Commit or stash changes before running pub.');
-  process.exit(1);
-}
-
 execSync('git add package.json manifest.json', { stdio: 'inherit' });
 execSync(`git commit -m "chore: release ${nextVersion}"`, { stdio: 'inherit' });
 execSync('git push origin HEAD', { stdio: 'inherit' });
