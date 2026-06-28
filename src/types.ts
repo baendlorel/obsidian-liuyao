@@ -1,5 +1,5 @@
 import type { SixGod, Hexagram } from 'liuyao';
-import type { SolarLunarResult } from 'solarlunar';
+import type { SolarLunarResult } from './solarlunar.js';
 
 /**
  * 这些字段原则是可以没有但会是invalid的

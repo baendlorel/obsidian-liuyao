@@ -1,5 +1,5 @@
 import { Hexagram } from 'liuyao';
-import solarLunar, { SolarLunarResult } from 'solarlunar';
+import { solarlunar, type SolarLunarResult } from './solarlunar.js';
 
 export const createDate = (s: string): Date | 'invalid' => {
   const d = new Date(s);
@@ -10,7 +10,7 @@ export const createLunarInfo = (date: Date | 'invalid'): SolarLunarResult | 'inv
   if (date === 'invalid') {
     return 'invalid';
   }
-  const v = solarLunar.solar2lunar(date.getFullYear(), date.getMonth() + 1, date.getDate());
+  const v = solarlunar.solar2lunar(date.getFullYear(), date.getMonth() + 1, date.getDate());
   return v === -1 ? 'invalid' : v;
 };
 
