@@ -1,9 +1,14 @@
-import type { ParsedLiuyaoBlock, DisplayLine } from './types.js';
+import type { SolarLunarResult } from 'solarlunar';
 import { SixGodTable, Hexagram, type SixGod } from 'liuyao';
+import { type ParsedLiuyaoBlock, type DisplayLine, ResultState } from './types.js';
 import { createHexagram, createDate, createLunarInfo } from './utils.js';
 
 export const parse = (source: string): ParsedLiuyaoBlock => {
-  const result: ParsedLiuyaoBlock = {};
+  const result: ParsedLiuyaoBlock = {
+    hexagram: { value: null, state: ResultState.None },
+    date: { value: null, state: ResultState.None },
+    lunar: { value: null, state: ResultState.None },
+  };
 
   const lines = source
     .split(/\r?\n/)
@@ -11,17 +16,19 @@ export const parse = (source: string): ParsedLiuyaoBlock => {
     .filter((line) => line.length > 0);
 
   if (lines.length === 0) {
-    result.hexagram = 'invalid';
     return result;
   }
 
   // 只有一行，可能是时辰可能是卦象
   if (lines.length === 1) {
-    result.hexagram = createHexagram(lines[0]);
-    if (result.hexagram !== 'invalid') {
+    // 这一行是卦象
+    const gram = createHexagram(lines[0]);
+    if (gram.state === ResultState.Valid) {
+      result.hexagram = gram;
       return result;
     }
 
+    // 这一行是日期
     result.date = createDate(lines[0]);
     result.lunar = createLunarInfo(result.date);
     return result;
@@ -31,10 +38,13 @@ export const parse = (source: string): ParsedLiuyaoBlock => {
   result.hexagram = createHexagram(lines[1]);
   result.date = createDate(lines[0]);
   result.lunar = createLunarInfo(result.date);
-  const lunar = result.lunar;
-  if (lunar !== 'invalid') {
-    result.sixGods = SixGodTable.find((v) => v.heavenlyStem === lunar.gzDay.charAt(0))?.gods;
+
+  if (result.lunar.state === ResultState.Valid && result.lunar.value) {
+    result.sixGods = SixGodTable.find(
+      (v) => v.heavenlyStem === (result.lunar.value as SolarLunarResult).gzDay.charAt(0),
+    )?.gods;
   }
+
   return result;
 };
 
