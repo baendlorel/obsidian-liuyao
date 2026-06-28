@@ -40,9 +40,7 @@ export const parse = (source: string): ParsedLiuyaoBlock => {
   result.lunar = createLunarInfo(result.date);
 
   if (result.lunar.state === ResultState.Valid && result.lunar.value) {
-    result.sixGods = SixGodTable.find(
-      (v) => v.heavenlyStem === (result.lunar.value as SolarLunarResult).gzDay.charAt(0),
-    )?.gods;
+    result.sixGods = SixGodTable.find((v) => v.heavenlyStem === result.lunar.value?.gzDay.charAt(0))?.gods;
   }
 
   return result;
