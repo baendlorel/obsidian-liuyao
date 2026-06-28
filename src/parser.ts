@@ -1,4 +1,3 @@
-import type { SolarLunarResult } from 'solarlunar';
 import { SixGodTable, Hexagram, type SixGod } from 'liuyao';
 import { type ParsedLiuyaoBlock, type DisplayLine, ResultState } from './types.js';
 import { createHexagram, createDate, createLunarInfo } from './utils.js';
@@ -39,7 +38,7 @@ export const parse = (source: string): ParsedLiuyaoBlock => {
   result.date = createDate(lines[0]);
   result.lunar = createLunarInfo(result.date);
 
-  if (result.lunar.state === ResultState.Valid && result.lunar.value) {
+  if (result.lunar.state === ResultState.Valid) {
     result.sixGods = SixGodTable.find((v) => v.heavenlyStem === result.lunar.value?.gzDay.charAt(0))?.gods;
   }
 

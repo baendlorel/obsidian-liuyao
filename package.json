@@ -1,6 +1,6 @@
 {
   "name": "obsidian-liuyao",
-  "version": "0.2.11",
+  "version": "0.3.0",
   "description": "An obsidian plugin that renders liuyao gram graphs by ```liuyao datetime 012321``` syntax.",
   "description_zh": "一个 Obsidian 插件，通过 ```liuyao datetime 012321``` 语法渲染六爻卦象图。",
   "scripts": {
