@@ -54,7 +54,7 @@ function renderLiuyaoBlock(source: string, element: HTMLElement): void {
     }
   }
 
-  panel.append(wrapper, div('liuyao-watermark', 'v__VERSION__'));
+  panel.append(wrapper, div('kasukabe-watermark', `v__VERSION__ © __YEAR__ Kasukabe Tsumugi. All Rights Reserved.`));
 }
 
 export default class LiuyaoRendererPlugin extends Plugin {

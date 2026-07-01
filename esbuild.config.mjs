@@ -56,5 +56,6 @@ if (watch) {
   await ctx.dispose();
   replace({
     __VERSION__: pkg.version,
+    __YEAR__: new Date().getFullYear(),
   });
 }
