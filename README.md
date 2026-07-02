@@ -2,8 +2,18 @@
 
 This plugin renders six-line divination diagrams in Obsidian from a fenced `liuyao` code block.
 
-## 0.2.x Released
-You can now choose the color of the dynamic Yaos.
+## Recent Updates
+
+### 0.4.1 Released
+- Enhanced copyright watermark with author attribution and year
+- Improved type declarations for better type safety
+- Minor styling improvements to watermark display
+
+### 0.3.x Released
+- Watermark enhancements for proper attribution
+
+### 0.2.x Released
+- Color customization for dynamic Yaos
 
 ## Supported Syntax
 
@@ -45,6 +55,16 @@ The rendered card shows:
 - The family and hexagram name at the top, such as `乾宫 乾为天`
 - The line relation text on the left of each line
 - The `世` or `应` marker on the right when present
+- A copyright watermark at the bottom left: `v{VERSION} © {YEAR} Kasukabe Tsumugi. All Rights Reserved.`
+
+## Watermark
+
+Each rendered divination card includes a copyright watermark in the bottom left corner. The watermark displays:
+- The current plugin version
+- The current year
+- Author attribution: "Kasukabe Tsumugi"
+
+This watermark is styled with the `.kasukabe-watermark` CSS class and can be customized if needed.
 
 ## Development
 

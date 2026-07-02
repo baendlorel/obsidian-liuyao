@@ -56,4 +56,4 @@ interface SolarLunarInstance {
   (year?: number, month?: number, day?: number): SolarLunarResult | -1;
 }
 
-export const solarlunar: SolarLunarInstance = o as unknown as SolarLunarInstance;
+export const solarlunar = o as unknown as SolarLunarInstance;
