@@ -1,7 +1,7 @@
 {
   "id": "liuyao",
   "name": "Liuyao",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "minAppVersion": "1.5.0",
   "description": "Render Liuyao hexagrams from fenced code blocks.",
   "author": "Kasukabe Tsumugi",
